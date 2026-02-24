@@ -1,0 +1,41 @@
+{
+  "name": "@abetahta/web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@excalidraw/excalidraw": "^0.18.0",
+    "clsx": "^2.1.0",
+    "lucide-react": "^0.460.0",
+    "mermaid": "^11.12.3",
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "socket.io-client": "^4.8.0",
+    "tailwind-merge": "^2.6.0",
+    "tldraw": "^4.4.0",
+    "y-websocket": "^2.0.4",
+    "yjs": "^13.6.0",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitest/coverage-v8": "^4.0.18",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^15.1.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^4.0.18"
+  }
+}

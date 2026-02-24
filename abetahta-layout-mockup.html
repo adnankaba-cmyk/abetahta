@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AbeTahta - Layout Tasarım Mockup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; color: #e0e0e0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* TOP: Controls */
+  .controls-bar {
+    background: #16213e; border-bottom: 1px solid #334; padding: 8px 16px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap; min-height: 44px;
+  }
+  .controls-bar label { font-size: 12px; color: #8899aa; display: flex; align-items: center; gap: 6px; }
+  .controls-bar select, .controls-bar input[type=range], .controls-bar input[type=checkbox] { cursor: pointer; }
+  .controls-bar select { background: #1a1a2e; color: #e0e0e0; border: 1px solid #445; padding: 3px 6px; border-radius: 4px; font-size: 12px; }
+  .controls-bar input[type=range] { width: 80px; accent-color: #4a9eff; }
+  .controls-bar .val { font-size: 11px; color: #4a9eff; min-width: 32px; }
+  .preset-btn { background: #2a3a5e; color: #8cb4ff; border: 1px solid #3a4a7e; padding: 3px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+  .preset-btn:hover { background: #3a4a7e; }
+  .preset-btn.active { background: #4a9eff; color: #fff; border-color: #4a9eff; }
+  .divider { width: 1px; height: 24px; background: #334; }
+
+  /* MAIN: Preview */
+  .main { flex: 1; display: flex; overflow: hidden; }
+
+  /* MOCKUP */
+  .mockup-wrap { flex: 1; padding: 16px; display: flex; justify-content: center; align-items: center; overflow: auto; }
+  .mockup {
+    width: 100%; max-width: 1100px; height: 100%; max-height: 640px;
+    border: 2px solid #445; border-radius: 8px; overflow: hidden;
+    display: flex; flex-direction: column; background: #f5f5f5; color: #333;
+    font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  /* --- MOCKUP INTERNALS --- */
+  .m-header { background: #fff; border-bottom: 1px solid #ddd; display: flex; align-items: center; height: 28px; padding: 0 8px; font-size: 11px; }
+  .m-header .logo { font-weight: 700; color: #0066CC; margin-right: 8px; font-size: 12px; }
+  .m-header .menu-item { padding: 2px 8px; cursor: default; color: #333; border-radius: 3px; }
+  .m-header .menu-item:hover { background: #e8f0fe; }
+  .m-header .menu-item.oto { color: #7c3aed; font-weight: 600; }
+  .m-header .spacer { flex: 1; }
+  .m-header .user { background: #0066CC; color: #fff; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; }
+
+  .m-toolbar { background: #fafafa; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; height: 30px; padding: 0 6px; gap: 2px; }
+  .m-toolbar .tbtn { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border: 1px solid transparent; border-radius: 3px; font-size: 12px; cursor: default; color: #555; }
+  .m-toolbar .tbtn:hover { background: #e8f0fe; border-color: #ccc; }
+  .m-toolbar .tbtn.active { background: #d0e0ff; border-color: #88b; color: #0066CC; }
+  .m-toolbar .tsep { width: 1px; height: 18px; background: #ddd; margin: 0 3px; }
+  .m-toolbar .zoom-val { font-size: 10px; color: #666; min-width: 32px; text-align: center; }
+  .m-toolbar .spacer { flex: 1; }
+
+  .m-body { flex: 1; display: flex; overflow: hidden; position: relative; }
+
+  /* Left Panel */
+  .m-left { background: #fff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; overflow: hidden; transition: width 0.2s; }
+  .m-left .section-title { font-size: 10px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 8px 2px; }
+  .m-left .cat-tabs { display: flex; border-bottom: 1px solid #eee; }
+  .m-left .cat-tab { flex: 1; text-align: center; padding: 4px 2px; font-size: 10px; color: #888; cursor: default; border-bottom: 2px solid transparent; }
+  .m-left .cat-tab.active { color: #0066CC; border-bottom-color: #0066CC; }
+  .m-left .shape-grid { display: grid; gap: 3px; padding: 6px; flex: 1; overflow-y: auto; align-content: start; }
+  .m-left .shape-btn { aspect-ratio: 1; border: 1px solid #e8e8e8; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: default; background: #fafafa; }
+  .m-left .shape-btn:hover { background: #e8f0fe; border-color: #aac; }
+
+  .m-left .fmt-section { border-top: 2px solid #e8e8e8; padding: 6px 8px; }
+  .m-left .fmt-label { font-size: 9px; font-weight: 600; color: #888; text-transform: uppercase; margin-bottom: 3px; }
+  .m-left .fmt-colors { display: flex; gap: 3px; margin-bottom: 6px; }
+  .m-left .fmt-color { width: 18px; height: 18px; border-radius: 3px; border: 1px solid #ccc; cursor: default; }
+  .m-left .fmt-color:hover { transform: scale(1.15); }
+  .m-left .fmt-sizes { display: flex; gap: 3px; margin-bottom: 6px; }
+  .m-left .fmt-size { padding: 2px 6px; font-size: 9px; border: 1px solid #ddd; border-radius: 3px; cursor: default; background: #f8f8f8; }
+  .m-left .fmt-size:hover { background: #e0e8ff; }
+  .m-left .fmt-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+  .m-left .fmt-action { padding: 3px; font-size: 9px; border: 1px solid #ddd; border-radius: 3px; text-align: center; cursor: default; background: #f8f8f8; }
+  .m-left .fmt-info { font-size: 9px; color: #999; text-align: center; padding-top: 4px; }
+
+  /* Canvas */
+  .m-canvas { flex: 1; background: #f8f8f8; position: relative; overflow: hidden; }
+  .m-canvas .grid-bg {
+    position: absolute; inset: 0;
+    background-image: radial-gradient(circle, #ddd 1px, transparent 1px);
+    background-size: 20px 20px; opacity: 0.5;
+  }
+  .m-canvas .shapes-area { position: absolute; inset: 40px; }
+  .m-canvas .demo-shape { position: absolute; border: 2px solid #333; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 500; color: #333; }
+
+  /* Right floating: MiniMap + AI */
+  .m-right-float { position: absolute; right: 8px; top: 8px; display: flex; flex-direction: column; gap: 6px; z-index: 10; }
+  .m-minimap { width: 140px; height: 80px; background: #fff; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; }
+  .m-minimap .mm-label { font-size: 8px; color: #999; padding: 2px 4px; }
+  .m-minimap .mm-content { background: #f0f0f0; margin: 2px; height: calc(100% - 16px); border-radius: 3px; position: relative; }
+  .m-minimap .mm-viewport { position: absolute; border: 1.5px solid #4a9eff; border-radius: 2px; background: rgba(74,158,255,0.08); }
+
+  .m-ai-panel { width: 280px; background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; transition: all 0.2s; }
+  .m-ai-panel.closed { height: 0; opacity: 0; pointer-events: none; margin: 0; padding: 0; border: none; }
+  .m-ai-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 6px 10px; display: flex; align-items: center; font-size: 11px; font-weight: 600; }
+  .m-ai-header .spacer { flex: 1; }
+  .m-ai-header .close-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; width: 18px; height: 18px; border-radius: 50%; cursor: default; font-size: 10px; display: flex; align-items: center; justify-content: center; }
+  .m-ai-messages { flex: 1; padding: 8px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+  .m-ai-msg { padding: 6px 8px; border-radius: 8px; font-size: 10px; max-width: 85%; line-height: 1.4; }
+  .m-ai-msg.user { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; align-self: flex-end; border-bottom-right-radius: 2px; }
+  .m-ai-msg.bot { background: #f0f0f5; color: #333; align-self: flex-start; border-bottom-left-radius: 2px; }
+  .m-ai-input { display: flex; gap: 4px; padding: 6px 8px; border-top: 1px solid #eee; }
+  .m-ai-input input { flex: 1; border: 1px solid #ddd; border-radius: 4px; padding: 4px 8px; font-size: 10px; outline: none; }
+  .m-ai-input button { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border: none; border-radius: 4px; padding: 4px 10px; font-size: 10px; cursor: default; }
+
+  /* Comment/History overlays */
+  .m-overlay-panel { position: absolute; right: 8px; top: 8px; width: 280px; background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 20; display: none; flex-direction: column; overflow: hidden; }
+  .m-overlay-panel.visible { display: flex; }
+  .m-overlay-header { padding: 8px 10px; border-bottom: 1px solid #eee; font-weight: 600; font-size: 11px; display: flex; align-items: center; }
+  .m-overlay-header .spacer { flex: 1; }
+  .m-overlay-body { padding: 8px; font-size: 10px; color: #666; max-height: 200px; overflow-y: auto; }
+
+  /* Dropdown menu */
+  .m-dropdown { position: absolute; background: #fff; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); padding: 4px 0; z-index: 50; min-width: 200px; display: none; }
+  .m-dropdown.visible { display: block; }
+  .m-dropdown .dd-item { padding: 4px 12px; font-size: 11px; cursor: default; display: flex; justify-content: space-between; }
+  .m-dropdown .dd-item:hover { background: #e8f0fe; }
+  .m-dropdown .dd-item .shortcut { color: #999; font-size: 10px; }
+  .m-dropdown .dd-sep { height: 1px; background: #eee; margin: 3px 0; }
+  .m-dropdown .dd-header { padding: 3px 12px; font-size: 9px; font-weight: 700; color: #7c3aed; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Status Bar */
+  .m-status { background: #f0f0f0; border-top: 1px solid #ddd; height: 22px; display: flex; align-items: center; padding: 0 10px; font-size: 10px; color: #888; }
+  .m-status .spacer { flex: 1; }
+  .m-status .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: #10b981; margin-right: 4px; }
+  .m-status .brand { color: #0066CC; font-weight: 600; margin-left: 6px; }
+
+  /* BOTTOM: Prompt output */
+  .prompt-area {
+    background: #0f3460; border-top: 1px solid #334; padding: 10px 16px;
+    display: flex; align-items: flex-start; gap: 12px; min-height: 60px;
+  }
+  .prompt-text { flex: 1; font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 12px; color: #a0c4ff; line-height: 1.5; white-space: pre-wrap; }
+  .copy-btn { background: #4a9eff; color: #fff; border: none; padding: 6px 14px; border-radius: 4px; font-size: 12px; cursor: pointer; white-space: nowrap; }
+  .copy-btn:hover { background: #3a8eff; }
+  .copy-btn.copied { background: #10b981; }
+
+  /* Annotations */
+  .anno { position: absolute; font-size: 9px; color: #4a9eff; font-weight: 600; pointer-events: none; }
+  .anno::before { content: ''; position: absolute; border: 1px dashed #4a9eff44; }
+</style>
+</head>
+<body>
+
+<!-- CONTROLS -->
+<div class="controls-bar">
+  <span style="font-size:13px;font-weight:700;color:#4a9eff;">AbeTahta Layout</span>
+  <div class="divider"></div>
+
+  <label>Preset:
+    <button class="preset-btn active" onclick="applyPreset('varsayilan')">Varsayilan</button>
+    <button class="preset-btn" onclick="applyPreset('genis')">Genis Canvas</button>
+    <button class="preset-btn" onclick="applyPreset('kompakt')">Kompakt</button>
+    <button class="preset-btn" onclick="applyPreset('sadece_canvas')">Sadece Canvas</button>
+  </label>
+  <div class="divider"></div>
+
+  <label>Sol Panel <input type="range" min="0" max="260" value="200" id="leftW" oninput="updateState()"><span class="val" id="leftWVal">200</span></label>
+  <label><input type="checkbox" id="showLeft" checked onchange="updateState()"> Sol Panel</label>
+  <label><input type="checkbox" id="showBicim" checked onchange="updateState()"> Bicim</label>
+  <div class="divider"></div>
+  <label><input type="checkbox" id="showAI" checked onchange="updateState()"> AI Panel</label>
+  <label>AI Yuk: <input type="range" min="200" max="400" value="300" id="aiH" oninput="updateState()"><span class="val" id="aiHVal">300</span></label>
+  <div class="divider"></div>
+  <label><input type="checkbox" id="showMinimap" checked onchange="updateState()"> MiniMap</label>
+</div>
+
+<!-- PREVIEW -->
+<div class="main">
+  <div class="mockup-wrap">
+    <div class="mockup" id="mockup">
+
+      <!-- MENU BAR -->
+      <div class="m-header" id="menuBar">
+        <span class="logo">abeTahta</span>
+        <span style="color:#aaa;margin-right:6px;">|</span>
+        <span class="menu-item" onclick="toggleMenu('dosya',this)">Dosya</span>
+        <span class="menu-item" onclick="toggleMenu('duzen',this)">Duzen</span>
+        <span class="menu-item" onclick="toggleMenu('gorunum',this)">Gorunum</span>
+        <span class="menu-item" onclick="toggleMenu('ekle',this)">Ekle</span>
+        <span class="menu-item oto" onclick="toggleMenu('otomasyon',this)">Otomasyon</span>
+        <span class="menu-item" onclick="toggleMenu('yardim',this)">Yardim</span>
+        <span class="spacer"></span>
+        <span style="font-size:9px;color:#10b981;">● Cevrimici</span>
+        <span class="user" style="margin-left:8px;">AD</span>
+      </div>
+
+      <!-- DROPDOWN MENUS -->
+      <div class="m-dropdown" id="dd-dosya">
+        <div class="dd-item"><span>Yeni</span><span class="shortcut">Ctrl+N</span></div>
+        <div class="dd-item"><span>Ac...</span><span class="shortcut">Ctrl+O</span></div>
+        <div class="dd-item"><span>Kaydet</span><span class="shortcut">Ctrl+S</span></div>
+        <div class="dd-item"><span>Farkli Kaydet...</span><span class="shortcut">Ctrl+Shift+S</span></div>
+        <div class="dd-sep"></div>
+        <div class="dd-item"><span>Ice Aktar...</span></div>
+        <div class="dd-item"><span>Disa Aktar</span></div>
+        <div class="dd-sep"></div>
+        <div class="dd-item"><span>Yazdir...</span><span class="shortcut">Ctrl+P</span></div>
+      </div>
+      <div class="m-dropdown" id="dd-duzen">
+        <div class="dd-item"><span>Geri Al</span><span class="shortcut">Ctrl+Z</span></div>
+        <div class="dd-item"><span>Yinele</span><span class="shortcut">Ctrl+Y</span></div>
+        <div class="dd-sep"></div>
+        <div class="dd-item"><span>Kes</span><span class="shortcut">Ctrl+X</span></div>
+        <div class="dd-item"><span>Kopyala</span><span class="shortcut">Ctrl+C</span></div>
+        <div class="dd-item"><span>Yapistir</span><span class="shortcut">Ctrl+V</span></div>
+        <div class="dd-sep"></div>
+        <div class="dd-item"><span>Tumunu Sec</span><span class="shortcut">Ctrl+A</span></div>
+        <div class="dd-item"><span>Sil</span><span class="shortcut">Del</span></div>
+      </div>
+      <div class="m-dropdown" id="dd-gorunum">
+        <div class="dd-item"><span>Yakinlastir</span><span class="shortcut">Ctrl++</span></div>
+        <div class="dd-item"><span>Uzaklastir</span><span class="shortcut">Ctrl+-</span></div>
+        <div class="dd-item"><span>%100</span><span class="shortcut">Ctrl+0</span></div>
+        <div class="dd-item"><span>Tume Sigdir</span><span class="shortcut">Ctrl+Shift+H</span></div>
+        <div class="dd-sep"></div>
+        <div class="dd-item"><span>✓ Sol Panel</span></div>
+        <div class="dd-item"><span>✓ Mini Harita</span></div>
+      </div>
+      <div class="m-dropdown" id="dd-ekle">
+        <div class="dd-item"><span>Dikdortgen</span></div>
+        <div class="dd-item"><span>Elips</span></div>
+        <div class="dd-item"><span>Ucgen</span></div>
+        <div class="dd-item"><span>Eskenar Dortgen</span></div>
+        <div class="dd-sep"></div>
+        <div class="dd-item"><span>Metin</span></div>
+        <div class="dd-item"><span>Not</span></div>
+        <div class="dd-item"><span>Ok</span></div>
+        <div class="dd-sep"></div>
+        <div class="dd-item"><span>Resim...</span></div>
+      </div>
+      <div class="m-dropdown" id="dd-otomasyon" style="min-width:220px;">
+        <div class="dd-header">Mermaid</div>
+        <div class="dd-item"><span>Akis Diyagrami</span></div>
+        <div class="dd-item"><span>Kullanici Girisi</span></div>
+        <div class="dd-item"><span>Siparis Sureci</span></div>
+        <div class="dd-item"><span>Veritabani Yapisi</span></div>
+        <div class="dd-item"><span>DevOps Pipeline</span></div>
+        <div class="dd-sep"></div>
+        <div class="dd-header">Tahta DSL</div>
+        <div class="dd-item"><span>Akis Diyagrami</span></div>
+        <div class="dd-item"><span>Organizasyon Semasi</span></div>
+        <div class="dd-item"><span>Bar Grafik</span></div>
+        <div class="dd-item"><span>Kanban Tahtasi</span></div>
+        <div class="dd-item"><span>Zaman Cizelgesi</span></div>
+        <div class="dd-sep"></div>
+        <div class="dd-header">Sablonlar</div>
+        <div class="dd-item"><span>Temel Akis</span></div>
+        <div class="dd-item"><span>Org Chart</span></div>
+        <div class="dd-item"><span>SWOT Analizi</span></div>
+        <div class="dd-sep"></div>
+        <div class="dd-item" style="color:#7c3aed;font-weight:600;"><span>Elle DSL Yaz...</span></div>
+      </div>
+      <div class="m-dropdown" id="dd-yardim">
+        <div class="dd-item"><span>Klavye Kisayollari</span></div>
+        <div class="dd-item"><span>Hakkinda</span></div>
+      </div>
+
+      <!-- TOOLBAR -->
+      <div class="m-toolbar">
+        <div class="tbtn" title="Geri Al">↶</div>
+        <div class="tbtn" title="Yinele">↷</div>
+        <div class="tsep"></div>
+        <div class="tbtn" title="Uzaklastir">−</div>
+        <div class="zoom-val">100%</div>
+        <div class="tbtn" title="Yakinlastir">+</div>
+        <div class="tbtn" title="Sigdir" style="font-size:10px;">⊞</div>
+        <div class="tbtn" style="font-size:10px;">1:1</div>
+        <div class="tsep"></div>
+        <div class="tbtn active" title="Sec">⬚</div>
+        <div class="tbtn" title="El">✋</div>
+        <div class="tbtn" title="Ciz">✏</div>
+        <div class="tbtn" title="Silgi">🧹</div>
+        <div class="tbtn" title="Ok">➔</div>
+        <div class="tbtn" title="Metin">T</div>
+        <div class="tbtn" title="Not">📝</div>
+        <div class="spacer"></div>
+        <div class="tbtn" id="aiToggleBtn" title="AI Panel" style="font-size:10px;font-weight:700;color:#7c3aed;background:#f0e8ff;border-color:#c8b0ff;" onclick="toggleAI()">AI</div>
+        <div class="tbtn" title="Yorumlar">💬</div>
+        <div class="tbtn" title="Gecmis">🕐</div>
+      </div>
+
+      <!-- BODY -->
+      <div class="m-body">
+
+        <!-- LEFT PANEL: SHAPES + FORMAT -->
+        <div class="m-left" id="leftPanel">
+          <div class="section-title">Sekiller</div>
+          <div class="cat-tabs">
+            <div class="cat-tab active">Genel</div>
+            <div class="cat-tab">Akis</div>
+            <div class="cat-tab">Oklar</div>
+            <div class="cat-tab">Ozel</div>
+          </div>
+          <div class="shape-grid" id="shapeGrid">
+            <div class="shape-btn">▭</div>
+            <div class="shape-btn">○</div>
+            <div class="shape-btn">△</div>
+            <div class="shape-btn">◇</div>
+            <div class="shape-btn">⬠</div>
+            <div class="shape-btn">⬡</div>
+            <div class="shape-btn">☆</div>
+            <div class="shape-btn">☁</div>
+          </div>
+          <div class="fmt-section" id="fmtSection">
+            <div class="fmt-label">Dolgu</div>
+            <div class="fmt-colors">
+              <div class="fmt-color" style="background:#333;"></div>
+              <div class="fmt-color" style="background:#e03131;"></div>
+              <div class="fmt-color" style="background:#e8590c;"></div>
+              <div class="fmt-color" style="background:#fcc419;"></div>
+              <div class="fmt-color" style="background:#40c057;"></div>
+              <div class="fmt-color" style="background:#228be6;"></div>
+              <div class="fmt-color" style="background:#be4bdb;"></div>
+            </div>
+            <div class="fmt-label">Boyut</div>
+            <div class="fmt-sizes">
+              <div class="fmt-size">S</div>
+              <div class="fmt-size" style="background:#d0e0ff;border-color:#88b;">M</div>
+              <div class="fmt-size">L</div>
+              <div class="fmt-size">XL</div>
+            </div>
+            <div class="fmt-label">Duzenleme</div>
+            <div class="fmt-actions">
+              <div class="fmt-action">One Getir</div>
+              <div class="fmt-action">Arkaya</div>
+              <div class="fmt-action">Kopyala</div>
+              <div class="fmt-action">Sil</div>
+            </div>
+            <div class="fmt-info">2 secili / 12 toplam</div>
+          </div>
+        </div>
+
+        <!-- CANVAS -->
+        <div class="m-canvas" id="canvasArea">
+          <div class="grid-bg"></div>
+          <div class="shapes-area">
+            <div class="demo-shape" style="left:10%;top:15%;width:120px;height:50px;background:#e8f0fe;border-color:#228be6;">Basla</div>
+            <div class="demo-shape" style="left:10%;top:45%;width:120px;height:50px;background:#fff3e0;border-color:#e8590c;">Islem Yap</div>
+            <div class="demo-shape" style="left:45%;top:30%;width:100px;height:60px;background:#fce4ec;border-color:#e03131;transform:rotate(45deg);font-size:9px;">Karar?</div>
+            <div class="demo-shape" style="left:55%;top:10%;width:120px;height:50px;background:#e8f5e9;border-color:#40c057;">Onayla</div>
+            <div class="demo-shape" style="left:55%;top:55%;width:120px;height:50px;background:#f3e5f5;border-color:#be4bdb;">Reddet</div>
+            <div class="demo-shape" style="left:80%;top:30%;width:100px;height:50px;background:#e8f0fe;border-color:#228be6;border-radius:25px;">Bitir</div>
+          </div>
+
+          <!-- RIGHT FLOATING: MiniMap + AI -->
+          <div class="m-right-float" id="rightFloat">
+            <div class="m-minimap" id="minimapPanel">
+              <div class="mm-label">Mini Harita</div>
+              <div class="mm-content">
+                <div class="mm-viewport" style="left:10%;top:15%;width:40%;height:50%;"></div>
+              </div>
+            </div>
+
+            <div class="m-ai-panel" id="aiPanel">
+              <div class="m-ai-header">
+                <span style="margin-right:4px;">🤖</span> AI Asistan
+                <span class="spacer"></span>
+                <div class="close-btn" onclick="toggleAI()">✕</div>
+              </div>
+              <div class="m-ai-messages" id="aiMessages">
+                <div class="m-ai-msg bot">Merhaba! Tahtaniz hakkinda sorular sorabilir veya sekil olusturabilirsiniz.</div>
+                <div class="m-ai-msg user">Bir akis diyagrami olustur</div>
+                <div class="m-ai-msg bot">Akis diyagrami olusturdum! 6 sekil ve 5 ok eklendi. ✅</div>
+              </div>
+              <div class="m-ai-input">
+                <input type="text" placeholder="Mesaj yazin...">
+                <button>Gonder</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATUS BAR -->
+      <div class="m-status">
+        <span>12 sekil</span>
+        <span style="margin:0 6px;color:#ccc;">|</span>
+        <span>Zoom: 100%</span>
+        <span class="spacer"></span>
+        <span class="sync-dot"></span>
+        <span>Sync</span>
+        <span class="brand">abeTahta</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- PROMPT OUTPUT -->
+<div class="prompt-area">
+  <div class="prompt-text" id="promptText">Layout ayarlarini degistirerek tasarimi kesfet...</div>
+  <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">Kopyala</button>
+</div>
+
+<script>
+const DEFAULTS = { leftW: 200, showLeft: true, showBicim: true, showAI: true, aiH: 300, showMinimap: true };
+
+const state = { ...DEFAULTS };
+
+const presets = {
+  varsayilan: { leftW: 200, showLeft: true, showBicim: true, showAI: true, aiH: 300, showMinimap: true },
+  genis: { leftW: 160, showLeft: true, showBicim: false, showAI: false, aiH: 300, showMinimap: true },
+  kompakt: { leftW: 180, showLeft: true, showBicim: true, showAI: true, aiH: 220, showMinimap: false },
+  sadece_canvas: { leftW: 0, showLeft: false, showBicim: false, showAI: false, aiH: 300, showMinimap: false },
+};
+
+function applyPreset(name) {
+  Object.assign(state, presets[name]);
+  document.getElementById('leftW').value = state.leftW;
+  document.getElementById('showLeft').checked = state.showLeft;
+  document.getElementById('showBicim').checked = state.showBicim;
+  document.getElementById('showAI').checked = state.showAI;
+  document.getElementById('aiH').value = state.aiH;
+  document.getElementById('showMinimap').checked = state.showMinimap;
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  render();
+  updatePrompt();
+}
+
+function updateState() {
+  state.leftW = +document.getElementById('leftW').value;
+  state.showLeft = document.getElementById('showLeft').checked;
+  state.showBicim = document.getElementById('showBicim').checked;
+  state.showAI = document.getElementById('showAI').checked;
+  state.aiH = +document.getElementById('aiH').value;
+  state.showMinimap = document.getElementById('showMinimap').checked;
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  render();
+  updatePrompt();
+}
+
+function render() {
+  document.getElementById('leftWVal').textContent = state.leftW + 'px';
+  document.getElementById('aiHVal').textContent = state.aiH + 'px';
+
+  const lp = document.getElementById('leftPanel');
+  lp.style.width = state.showLeft ? state.leftW + 'px' : '0px';
+  lp.style.minWidth = state.showLeft ? state.leftW + 'px' : '0px';
+  lp.style.overflow = state.showLeft ? 'hidden' : 'hidden';
+  lp.style.borderRight = state.showLeft ? '1px solid #e0e0e0' : 'none';
+
+  document.getElementById('shapeGrid').style.gridTemplateColumns = state.leftW < 180 ? 'repeat(3, 1fr)' : 'repeat(4, 1fr)';
+
+  document.getElementById('fmtSection').style.display = state.showBicim ? 'block' : 'none';
+
+  const ai = document.getElementById('aiPanel');
+  ai.classList.toggle('closed', !state.showAI);
+  if (state.showAI) {
+    ai.style.height = state.aiH + 'px';
+  }
+  document.getElementById('aiToggleBtn').style.background = state.showAI ? '#f0e8ff' : 'transparent';
+  document.getElementById('aiToggleBtn').style.borderColor = state.showAI ? '#c8b0ff' : 'transparent';
+
+  document.getElementById('minimapPanel').style.display = state.showMinimap ? 'block' : 'none';
+}
+
+function toggleAI() {
+  state.showAI = !state.showAI;
+  document.getElementById('showAI').checked = state.showAI;
+  render();
+  updatePrompt();
+}
+
+let openMenu = null;
+function toggleMenu(name, el) {
+  const dd = document.getElementById('dd-' + name);
+  if (openMenu === name) {
+    dd.classList.remove('visible');
+    openMenu = null;
+    return;
+  }
+  document.querySelectorAll('.m-dropdown').forEach(d => d.classList.remove('visible'));
+  const rect = el.getBoundingClientRect();
+  const mockRect = document.getElementById('mockup').getBoundingClientRect();
+  dd.style.left = (rect.left - mockRect.left) + 'px';
+  dd.style.top = '28px';
+  dd.classList.add('visible');
+  openMenu = name;
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.classList.contains('menu-item')) {
+    document.querySelectorAll('.m-dropdown').forEach(d => d.classList.remove('visible'));
+    openMenu = null;
+  }
+});
+
+function updatePrompt() {
+  const parts = [];
+  parts.push('AbeTahta layout tasarimi:');
+  parts.push('');
+
+  parts.push('SOL PANEL' + (state.showLeft ? ` (${state.leftW}px):` : ': KAPALI'));
+  if (state.showLeft) {
+    parts.push('  - Sekiller: Kategori sekmeleri (Genel/Akis/Oklar/Ozel) + ' + (state.leftW < 180 ? '3' : '4') + ' sutunlu grid');
+    if (state.showBicim) parts.push('  - Bicim: Dolgu renkleri, Boyut (S/M/L/XL), Duzenleme (One Getir/Arkaya/Kopyala/Sil)');
+  }
+
+  parts.push('');
+  parts.push('UST MENU BAR:');
+  parts.push('  Dosya | Duzen | Gorunum | Ekle | Otomasyon | Yardim');
+  parts.push('  - Otomasyon menusu: Mermaid (5), Tahta DSL (5), Sablonlar (3), Elle DSL Yaz');
+
+  parts.push('');
+  parts.push('TOOLBAR:');
+  parts.push('  Geri/Ileri | Zoom | Sec/El/Ciz/Silgi/Ok/Metin/Not | AI/Yorum/Gecmis');
+
+  parts.push('');
+  parts.push('SAG TARAF (floating, canvas icinde):');
+  if (state.showMinimap) parts.push('  - MiniMap (140px)');
+  if (state.showAI) parts.push(`  - AI Panel (280x${state.aiH}px) - butonla acilir/kapanir`);
+  if (!state.showMinimap && !state.showAI) parts.push('  - (bos)');
+
+  parts.push('');
+  parts.push('STATUS BAR: sekil sayisi | zoom | sync durumu');
+
+  document.getElementById('promptText').textContent = parts.join('\n');
+}
+
+function copyPrompt() {
+  navigator.clipboard.writeText(document.getElementById('promptText').textContent);
+  const btn = document.getElementById('copyBtn');
+  btn.textContent = 'Kopyalandi!';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Kopyala'; btn.classList.remove('copied'); }, 1500);
+}
+
+render();
+updatePrompt();
+</script>
+</body>
+</html>

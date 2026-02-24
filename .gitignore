@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build
+dist/
+.next/
+out/
+build/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
+
+# Coverage
+coverage/
+
+# Test screenshots
+test-*.png
+erp-*.png
+new-features.png
+now.png
+timeline-*.png
+templates-panel.png
+
+# Temp files
+tmp/
+nul
+arsiv/
+
+# SQL fix scripts
+fix_password.sql

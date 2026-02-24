@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+:root {
+  --color-primary: #3B82F6;
+  --color-primary-dark: #2563EB;
+  --color-bg: #FFFFFF;
+  --color-bg-secondary: #F3F4F6;
+  --color-text: #111827;
+  --color-text-secondary: #6B7280;
+  --color-border: #E5E7EB;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+}
+
+[data-theme="dark"] {
+  --color-bg: #111827;
+  --color-bg-secondary: #1F2937;
+  --color-text: #F9FAFB;
+  --color-text-secondary: #9CA3AF;
+  --color-border: #374151;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-secondary); }
+
+/* ========================================
+   EXCALIDRAW DUZELTMELERI
+   ======================================== */
+
+/* Excalidraw container tam ekran olsun */
+.excalidraw {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Canvas'in pointer events almasini sagla */
+.excalidraw canvas {
+  pointer-events: auto !important;
+}
+
+/* Sadece welcome/hint ekranini gizle - toolbar ve canvas'a dokunma */
+.excalidraw .welcome-screen-center,
+.excalidraw [class*="welcome-screen"],
+.excalidraw .HintViewer,
+.excalidraw [class*="HintViewer"] {
+  display: none !important;
+  pointer-events: none !important;
+}

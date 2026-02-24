@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>abeTahta - Mimari Tasarım</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --surface2: #1a1a26;
+  --border: #2a2a3a;
+  --text: #e4e4ef;
+  --text2: #8888a0;
+  --accent: #4f8fff;
+  --accent2: #7c5cfc;
+  --green: #34d399;
+  --orange: #fb923c;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --pink: #f472b6;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  overflow-x: hidden;
+}
+
+.noise {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .03;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+header {
+  padding: 40px 60px 20px;
+  position: relative; z-index: 1;
+  border-bottom: 1px solid var(--border);
+}
+
+header h1 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2.4rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), var(--accent2), var(--pink));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -1px;
+}
+
+header p { color: var(--text2); margin-top: 6px; font-size: 1rem; }
+
+.meta {
+  display: flex; gap: 24px; margin-top: 12px; font-size: .85rem; color: var(--text2);
+  font-family: 'JetBrains Mono', monospace;
+}
+.meta span { display:flex; align-items:center; gap:6px; }
+.meta .dot { width:6px; height:6px; border-radius:50%; }
+
+nav {
+  display: flex; gap: 8px; padding: 16px 60px;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 10;
+  background: rgba(10,10,15,.92);
+  backdrop-filter: blur(12px);
+}
+
+nav button {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .88rem;
+  cursor: pointer;
+  transition: all .2s;
+}
+nav button:hover, nav button.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.content { padding: 40px 60px; position: relative; z-index: 1; }
+
+section {
+  display: none;
+  animation: fadeIn .3s ease;
+}
+section.active { display: block; }
+
+@keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+/* CARDS */
+.grid { display: grid; gap: 20px; }
+.grid-2 { grid-template-columns: 1fr 1fr; }
+.grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+  transition: all .25s;
+  position: relative;
+  overflow: hidden;
+}
+.card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(79,143,255,.08);
+}
+.card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  opacity: 0;
+  transition: opacity .25s;
+}
+.card:hover::before { opacity: 1; }
+
+.card h3 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.card p { color: var(--text2); font-size: .9rem; line-height: 1.6; }
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: .72rem;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: .5px;
+}
+.badge-blue { background: rgba(79,143,255,.15); color: var(--accent); }
+.badge-green { background: rgba(52,211,153,.15); color: var(--green); }
+.badge-orange { background: rgba(251,146,60,.15); color: var(--orange); }
+.badge-purple { background: rgba(124,92,252,.15); color: var(--accent2); }
+.badge-red { background: rgba(248,113,113,.15); color: var(--red); }
+
+/* ARCHITECTURE DIAGRAM */
+.arch-diagram {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px;
+  margin-top: 20px;
+}
+
+.arch-row {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.arch-box {
+  padding: 16px 24px;
+  border-radius: 10px;
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .85rem;
+  font-weight: 600;
+  border: 2px solid;
+  min-width: 160px;
+  position: relative;
+  transition: all .3s;
+  cursor: default;
+}
+.arch-box:hover {
+  transform: scale(1.05);
+  z-index: 2;
+}
+
+.arch-box.user { background: rgba(79,143,255,.1); border-color: var(--accent); color: var(--accent); }
+.arch-box.server { background: rgba(52,211,153,.1); border-color: var(--green); color: var(--green); }
+.arch-box.db { background: rgba(251,146,60,.1); border-color: var(--orange); color: var(--orange); }
+.arch-box.ai { background: rgba(124,92,252,.1); border-color: var(--accent2); color: var(--accent2); }
+.arch-box.proxy { background: rgba(244,114,182,.1); border-color: var(--pink); color: var(--pink); }
+
+.arch-box small { display: block; font-weight: 400; opacity: .7; font-size: .75rem; margin-top: 4px; }
+
+.arch-arrow {
+  text-align: center;
+  color: var(--text2);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .8rem;
+  padding: 8px 0;
+}
+
+/* TABLE */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .88rem;
+}
+.data-table th {
+  text-align: left;
+  padding: 12px 16px;
+  background: var(--surface2);
+  color: var(--text2);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .8rem;
+  font-weight: 600;
+  letter-spacing: .5px;
+  border-bottom: 1px solid var(--border);
+}
+.data-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(42,42,58,.5);
+}
+.data-table tr:hover td { background: rgba(79,143,255,.03); }
+
+/* CODE BLOCK */
+.code-block {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .82rem;
+  line-height: 1.7;
+  overflow-x: auto;
+  color: var(--text2);
+  margin-top: 16px;
+}
+.code-block .key { color: var(--accent); }
+.code-block .str { color: var(--green); }
+.code-block .num { color: var(--orange); }
+.code-block .comment { color: #555570; font-style: italic; }
+
+/* TIMELINE */
+.timeline { margin-top: 20px; }
+.phase {
+  display: flex; gap: 20px; margin-bottom: 24px;
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: all .25s;
+}
+.phase:hover { border-color: var(--accent); }
+
+.phase-num {
+  width: 52px; height: 52px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.1rem; font-weight: 700;
+  flex-shrink: 0;
+}
+.phase-1 .phase-num { background: rgba(79,143,255,.15); color: var(--accent); }
+.phase-2 .phase-num { background: rgba(52,211,153,.15); color: var(--green); }
+.phase-3 .phase-num { background: rgba(251,146,60,.15); color: var(--orange); }
+.phase-4 .phase-num { background: rgba(124,92,252,.15); color: var(--accent2); }
+.phase-5 .phase-num { background: rgba(244,114,182,.15); color: var(--pink); }
+.phase-6 .phase-num { background: rgba(251,191,36,.15); color: var(--yellow); }
+
+.phase-info h4 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem; margin-bottom: 6px;
+}
+.phase-info .duration { color: var(--text2); font-size: .85rem; margin-bottom: 10px; }
+.phase-tasks { display: flex; flex-wrap: wrap; gap: 6px; }
+.task {
+  padding: 4px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: .8rem;
+  color: var(--text2);
+}
+
+h2 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.5rem;
+  margin-bottom: 24px;
+  display: flex; align-items: center; gap: 12px;
+}
+h2 .icon { font-size: 1.3rem; }
+
+.section-desc {
+  color: var(--text2);
+  font-size: .95rem;
+  line-height: 1.7;
+  margin-bottom: 28px;
+  max-width: 800px;
+}
+
+@media (max-width: 900px) {
+  header, nav, .content { padding-left: 20px; padding-right: 20px; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .arch-row { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<div class="noise"></div>
+
+<header>
+  <h1>abeTahta</h1>
+  <p>Gerçek Zamanlı Görsel İşbirliği Platformu — Mimari Tasarım Dokümanı</p>
+  <div class="meta">
+    <span><div class="dot" style="background:var(--green)"></div> v1.0</span>
+    <span>📅 21 Şubat 2026</span>
+    <span>👤 Adnan Kaba + Claude Opus 4.6</span>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="show('overview')">Genel Bakış</button>
+  <button onclick="show('arch')">Mimari</button>
+  <button onclick="show('db')">Veritabanı</button>
+  <button onclick="show('claude')">Claude Entegrasyonu</button>
+  <button onclick="show('tech')">Teknolojiler</button>
+  <button onclick="show('phases')">Geliştirme Planı</button>
+</nav>
+
+<div class="content">
+
+<!-- OVERVIEW -->
+<section id="overview" class="active">
+  <h2><span class="icon">🎯</span> Proje Tanımı</h2>
+  <p class="section-desc">
+    <strong>abeTahta</strong>, birden fazla kullanıcının internet üzerinden eş zamanlı çalıştığı görsel bir proje yönetim platformudur. 
+    Kullanıcı tahtayı görür, Claude datayı görür — ikisi aynı gerçekliği farklı pencereden okur ve yazar.
+  </p>
+
+  <div class="grid grid-3">
+    <div class="card">
+      <h3>🖼️ Sonsuz Canvas</h3>
+      <p>Yakınlaştır, uzaklaştır, sonsuz kaydırma. Tüm proje tek bir tahta üzerinde, sınırsız alan.</p>
+    </div>
+    <div class="card">
+      <h3>📐 Akış Diyagramları</h3>
+      <p>Başlangıç, süreç, karar, bitiş kutuları. Oklar ve bağlantılar. İş süreçlerini görselleştir.</p>
+    </div>
+    <div class="card">
+      <h3>📝 Notlar & Listeler</h3>
+      <p>Yapışkan notlar, kontrol listeleri, serbest metin. Renk kodlu, boyutlandırılabilir.</p>
+    </div>
+    <div class="card">
+      <h3>👥 Gerçek Zamanlı</h3>
+      <p>Birden fazla kişi aynı anda çalışır. Herkes değişiklikleri anında görür. Çakışma yok.</p>
+    </div>
+    <div class="card">
+      <h3>🤖 Claude AI</h3>
+      <p>Arka planda tüm datayı okur, analiz eder, öneri üretir, eleman ekler. Görünmez takım arkadaşı.</p>
+    </div>
+    <div class="card">
+      <h3>💾 Her Şey Data</h3>
+      <p>Tahtadaki her eleman yapılandırılmış veri olarak veritabanında. Sorgulanabilir, analiz edilebilir.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="arch">
+  <h2><span class="icon">🏗️</span> Sistem Mimarisi</h2>
+  <p class="section-desc">
+    3 katmanlı mimari: Kullanıcı tarayıcısı → Sunucu katmanı → Data katmanı. 
+    Claude API ayrı bir entegrasyon noktası olarak data katmanına bağlı.
+  </p>
+
+  <div class="arch-diagram">
+    <div class="arch-row">
+      <div class="arch-box user">🖥️ Adnan<small>Chrome</small></div>
+      <div class="arch-box user">📱 Ahmet<small>Tablet</small></div>
+      <div class="arch-box user">💻 Mehmet<small>Laptop</small></div>
+    </div>
+    
+    <div class="arch-arrow">▼ HTTPS + WebSocket (WSS) ▼</div>
+
+    <div class="arch-row">
+      <div class="arch-box proxy">🔒 NGINX<small>SSL + Reverse Proxy</small></div>
+    </div>
+
+    <div class="arch-arrow">▼</div>
+
+    <div class="arch-row">
+      <div class="arch-box server">🌐 Next.js<small>:3000 — SSR + UI</small></div>
+      <div class="arch-box server">⚡ Yjs WebSocket<small>:4001 — Gerçek Zamanlı</small></div>
+      <div class="arch-box server">🔌 REST API<small>:4000 — CRUD + Auth</small></div>
+    </div>
+
+    <div class="arch-arrow">▼</div>
+
+    <div class="arch-row">
+      <div class="arch-box db">🐘 PostgreSQL<small>Kalıcı veri</small></div>
+      <div class="arch-box db">⚡ Redis<small>Oturum + Cache</small></div>
+    </div>
+
+    <div class="arch-arrow">▲▼ REST API ▲▼</div>
+
+    <div class="arch-row">
+      <div class="arch-box ai">🤖 Claude API<small>Okur / Yazar / Analiz Eder</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- DATABASE -->
+<section id="db">
+  <h2><span class="icon">🗄️</span> Veritabanı Şeması</h2>
+  <p class="section-desc">
+    8 tablo, hepsi UUID primary key. JSONB ile esnek içerik yapısı. 
+    Elemanlar tablosu en kritik — tahtadaki her şey burada.
+  </p>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <h3><span class="badge badge-blue">TABLO</span> users</h3>
+      <p>Kullanıcı hesapları. Email, şifre, rol (admin/member/viewer), avatar, son görülme zamanı.</p>
+    </div>
+    <div class="card">
+      <h3><span class="badge badge-blue">TABLO</span> projects</h3>
+      <p>Üst düzey organizasyon. Her projede birden fazla tahta. Renk ve ikon ile özelleştirme.</p>
+    </div>
+    <div class="card">
+      <h3><span class="badge badge-green">TABLO</span> boards</h3>
+      <p>Tahtalar. Viewport pozisyonu, zoom seviyesi. Her biri bir projeye ait.</p>
+    </div>
+    <div class="card" style="border-color: var(--orange);">
+      <h3><span class="badge badge-orange">KRİTİK</span> elements</h3>
+      <p>Tahtadaki TÜM nesneler. Tip (not, şekil, checklist, akış, çizim), pozisyon, boyut, renk, içerik (JSONB), atanan kişi, durum, etiketler, öncelik.</p>
+    </div>
+    <div class="card">
+      <h3><span class="badge badge-purple">TABLO</span> connections</h3>
+      <p>Elemanlar arası bağlantılar. Kaynak→Hedef, çizgi tipi, ok yönü, etiket, ara noktalar.</p>
+    </div>
+    <div class="card">
+      <h3><span class="badge badge-blue">TABLO</span> comments</h3>
+      <p>Yorumlar. Her elemana yorum yazılabilir. Claude'un yorumları is_ai=true işaretli.</p>
+    </div>
+    <div class="card">
+      <h3><span class="badge badge-blue">TABLO</span> history</h3>
+      <p>Versiyon geçmişi. Her değişiklik kaydedilir: önceki durum, sonraki durum, kim, ne zaman.</p>
+    </div>
+    <div class="card">
+      <h3><span class="badge badge-blue">TABLO</span> templates</h3>
+      <p>Hazır şablonlar. Flowchart, kanban, beyin fırtınası, toplantı. JSON olarak tüm içerik.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:32px; font-family:'JetBrains Mono',monospace;">elements.content JSONB Örnekleri</h3>
+  <div class="code-block">
+<span class="comment">// NOT tipi</span>
+{<span class="key">"title"</span>: <span class="str">"Fikir"</span>, <span class="key">"body"</span>: <span class="str">"Detaylı açıklama..."</span>}
+
+<span class="comment">// CHECKLIST tipi</span>
+{<span class="key">"title"</span>: <span class="str">"Görevler"</span>, <span class="key">"items"</span>: [
+  {<span class="key">"id"</span>: <span class="str">"1"</span>, <span class="key">"text"</span>: <span class="str">"Veritabanı"</span>, <span class="key">"checked"</span>: <span class="num">true</span>},
+  {<span class="key">"id"</span>: <span class="str">"2"</span>, <span class="key">"text"</span>: <span class="str">"API"</span>, <span class="key">"checked"</span>: <span class="num">false</span>}
+]}
+
+<span class="comment">// FLOWCHART_NODE tipi</span>
+{<span class="key">"label"</span>: <span class="str">"Stok Kontrolü"</span>, <span class="key">"node_type"</span>: <span class="str">"decision"</span>}
+
+<span class="comment">// SHAPE tipi</span>
+{<span class="key">"shape"</span>: <span class="str">"rectangle"</span>}
+  </div>
+</section>
+
+<!-- CLAUDE -->
+<section id="claude">
+  <h2><span class="icon">🤖</span> Claude Entegrasyonu</h2>
+  <p class="section-desc">
+    Claude, REST API üzerinden tahtanın tüm datasını JSON olarak okur. 
+    Akış mantığını analiz eder, eksikleri tespit eder, yeni elemanlar ekler, yorum yazar.
+  </p>
+
+  <h3 style="font-family:'JetBrains Mono',monospace; margin-bottom:16px;">Claude API Endpoint'leri</h3>
+  <table class="data-table">
+    <thead>
+      <tr><th>Metod</th><th>Endpoint</th><th>Açıklama</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="badge badge-green">GET</span></td><td>/api/claude/board/:id</td><td>Tüm tahta datasını JSON olarak al</td></tr>
+      <tr><td><span class="badge badge-green">GET</span></td><td>/api/claude/board/:id/summary</td><td>Özet: eleman sayıları, durumlar, atamalar</td></tr>
+      <tr><td><span class="badge badge-green">GET</span></td><td>/api/claude/board/:id/flow</td><td>Sadece akış diyagramı ve bağlantıları</td></tr>
+      <tr><td><span class="badge badge-blue">POST</span></td><td>/api/claude/board/:id/element</td><td>Yeni eleman ekle</td></tr>
+      <tr><td><span class="badge badge-orange">PUT</span></td><td>/api/claude/element/:id</td><td>Eleman güncelle</td></tr>
+      <tr><td><span class="badge badge-blue">POST</span></td><td>/api/claude/board/:id/analyze</td><td>AI analiz sonucu kaydet</td></tr>
+      <tr><td><span class="badge badge-blue">POST</span></td><td>/api/claude/board/:id/comment</td><td>Elemana yorum ekle</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="font-family:'JetBrains Mono',monospace; margin:28px 0 16px;">Claude'un Gördüğü Data (Örnek)</h3>
+  <div class="code-block">
+{
+  <span class="key">"board"</span>: {<span class="key">"id"</span>: <span class="str">"b-123"</span>, <span class="key">"name"</span>: <span class="str">"ERP Modül Tasarımı"</span>},
+  <span class="key">"elements"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="str">"e-1"</span>, <span class="key">"type"</span>: <span class="str">"flowchart_node"</span>,
+      <span class="key">"content"</span>: {<span class="key">"label"</span>: <span class="str">"Sipariş Girişi"</span>, <span class="key">"node_type"</span>: <span class="str">"start"</span>},
+      <span class="key">"assigned_to"</span>: <span class="str">"Ahmet"</span>,
+      <span class="key">"connections_out"</span>: [<span class="str">"e-2"</span>]
+    },
+    {
+      <span class="key">"id"</span>: <span class="str">"e-2"</span>, <span class="key">"type"</span>: <span class="str">"flowchart_node"</span>,
+      <span class="key">"content"</span>: {<span class="key">"label"</span>: <span class="str">"Stok Kontrolü"</span>, <span class="key">"node_type"</span>: <span class="str">"decision"</span>},
+      <span class="key">"connections_out"</span>: [<span class="str">"e-3"</span>, <span class="str">"e-4"</span>]
+    }
+  ],
+  <span class="key">"connections"</span>: [
+    {<span class="key">"source"</span>: <span class="str">"e-1"</span>, <span class="key">"target"</span>: <span class="str">"e-2"</span>},
+    {<span class="key">"source"</span>: <span class="str">"e-2"</span>, <span class="key">"target"</span>: <span class="str">"e-3"</span>, <span class="key">"label"</span>: <span class="str">"Stok yetersiz"</span>}
+  ],
+  <span class="key">"team_online"</span>: [<span class="str">"Adnan"</span>, <span class="str">"Ahmet"</span>]
+}
+  </div>
+
+  <div class="card" style="margin-top:24px; border-color: var(--accent2);">
+    <h3>🧠 Claude Bu Datayı Görünce Ne Yapabilir?</h3>
+    <p>
+      ✅ Akış mantığını analiz eder — döngü var mı, çıkmaz var mı?<br>
+      ✅ Eksik hata kontrol noktası tespit eder<br>
+      ✅ "Stok negatife düşerse?" gibi kenar durumları bulur<br>
+      ✅ Yeni eleman önerir ve ekler (POST ile)<br>
+      ✅ Görev durumlarını raporlar — %60 tamamlandı<br>
+      ✅ Darboğazları belirler — 5 görev Ahmet'e atanmış, Mehmet boş<br>
+      ✅ Dokümantasyon üretir — akış diyagramından metinsel süreç dokümanı
+    </p>
+  </div>
+</section>
+
+<!-- TECH -->
+<section id="tech">
+  <h2><span class="icon">⚙️</span> Teknoloji Yığını</h2>
+
+  <h3 style="font-family:'JetBrains Mono',monospace; margin-bottom:16px;">Frontend</h3>
+  <table class="data-table">
+    <thead><tr><th>Teknoloji</th><th>Kullanım</th><th>Neden</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Next.js 15</strong></td><td>Uygulama framework</td><td>SSR + SPA, routing, API routes</td></tr>
+      <tr><td><strong>React 19</strong></td><td>UI kütüphanesi</td><td>Komponent tabanlı, dev ekosistemi</td></tr>
+      <tr><td><strong>tldraw</strong></td><td>Canvas motoru</td><td>Açık kaynak whiteboard, sürükle/bırak, zoom/pan</td></tr>
+      <tr><td><strong>Yjs</strong></td><td>CRDT senkronizasyon</td><td>Çakışmasız gerçek zamanlı ortak düzenleme</td></tr>
+      <tr><td><strong>Tailwind CSS</strong></td><td>Stil</td><td>Hızlı, tutarlı UI</td></tr>
+      <tr><td><strong>Zustand</strong></td><td>State yönetimi</td><td>Hafif, basit, performanslı</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="font-family:'JetBrains Mono',monospace; margin:28px 0 16px;">Backend</h3>
+  <table class="data-table">
+    <thead><tr><th>Teknoloji</th><th>Kullanım</th><th>Neden</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Node.js 22</strong></td><td>Runtime</td><td>WebSocket native, hızlı I/O</td></tr>
+      <tr><td><strong>Express.js</strong></td><td>REST API</td><td>Olgun, stabil, middleware</td></tr>
+      <tr><td><strong>y-websocket</strong></td><td>Yjs senkronizasyon</td><td>Kanıtlanmış CRDT WebSocket sunucusu</td></tr>
+      <tr><td><strong>JWT + bcrypt</strong></td><td>Auth</td><td>Token bazlı kimlik doğrulama</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="font-family:'JetBrains Mono',monospace; margin:28px 0 16px;">Database</h3>
+  <table class="data-table">
+    <thead><tr><th>Teknoloji</th><th>Kullanım</th><th>Neden</th></tr></thead>
+    <tbody>
+      <tr><td><strong>PostgreSQL 16</strong></td><td>Ana veritabanı</td><td>JSONB, güvenilirlik, Adnan'ın SQL bilgisi</td></tr>
+      <tr><td><strong>Redis 7</strong></td><td>Cache + realtime</td><td>Cursor pozisyonları, oturum, pub/sub</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- PHASES -->
+<section id="phases">
+  <h2><span class="icon">📋</span> Geliştirme Planı</h2>
+  <p class="section-desc">6 faz, toplam 9-11 hafta. Her faz bir öncekinin üzerine inşa eder.</p>
+
+  <div class="timeline">
+    <div class="phase phase-1">
+      <div class="phase-num">F1</div>
+      <div class="phase-info">
+        <h4>Temel Altyapı</h4>
+        <div class="duration">2-3 hafta</div>
+        <div class="phase-tasks">
+          <span class="task">✅ Mimari tasarım</span>
+          <span class="task">Veritabanı kurulumu</span>
+          <span class="task">Auth sistemi</span>
+          <span class="task">Proje & tahta CRUD</span>
+          <span class="task">Temel canvas</span>
+          <span class="task">Şekil ekleme</span>
+          <span class="task">Sürükle/bırak</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase phase-2">
+      <div class="phase-num">F2</div>
+      <div class="phase-info">
+        <h4>Gerçek Zamanlı Senkronizasyon</h4>
+        <div class="duration">1-2 hafta</div>
+        <div class="phase-tasks">
+          <span class="task">Yjs entegrasyonu</span>
+          <span class="task">WebSocket sunucusu</span>
+          <span class="task">Çok kullanıcılı düzenleme</span>
+          <span class="task">Cursor takibi</span>
+          <span class="task">Online durumu</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase phase-3">
+      <div class="phase-num">F3</div>
+      <div class="phase-info">
+        <h4>Zengin İçerik</h4>
+        <div class="duration">2 hafta</div>
+        <div class="phase-tasks">
+          <span class="task">Yapışkan notlar</span>
+          <span class="task">Kontrol listeleri</span>
+          <span class="task">Akış diyagramı</span>
+          <span class="task">Oklar & bağlantılar</span>
+          <span class="task">Serbest çizim</span>
+          <span class="task">Resim yükleme</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase phase-4">
+      <div class="phase-num">F4</div>
+      <div class="phase-info">
+        <h4>Claude AI Entegrasyonu</h4>
+        <div class="duration">1 hafta</div>
+        <div class="phase-tasks">
+          <span class="task">Claude API endpoint'leri</span>
+          <span class="task">Tahta data okuma</span>
+          <span class="task">AI analiz & öneri</span>
+          <span class="task">Eleman ekleme</span>
+          <span class="task">Yorum sistemi</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase phase-5">
+      <div class="phase-num">F5</div>
+      <div class="phase-info">
+        <h4>Gelişmiş Özellikler</h4>
+        <div class="duration">2 hafta</div>
+        <div class="phase-tasks">
+          <span class="task">Şablonlar</span>
+          <span class="task">Versiyon geçmişi</span>
+          <span class="task">Dışa aktarma</span>
+          <span class="task">Arama</span>
+          <span class="task">Bildirimler</span>
+          <span class="task">Gruplama</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase phase-6">
+      <div class="phase-num">F6</div>
+      <div class="phase-info">
+        <h4>Polish & Optimizasyon</h4>
+        <div class="duration">1 hafta</div>
+        <div class="phase-tasks">
+          <span class="task">Performans</span>
+          <span class="task">Mobil uyum</span>
+          <span class="task">Tema desteği</span>
+          <span class="task">Klavye kısayolları</span>
+          <span class="task">Erişilebilirlik</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
