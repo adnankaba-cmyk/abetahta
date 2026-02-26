@@ -1,11 +1,21 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
+import rateLimit from 'express-rate-limit';
 import { db } from '../models/db.js';
 import { generateTokens, verifyRefreshToken, authenticate, SINGLE_USER_MODE, SINGLE_USER_PAYLOAD } from '../middleware/auth.js';
 import { asyncHandler, AppError } from '../middleware/errorHandler.js';
 import { z } from 'zod';
 
 export const authRoutes = Router();
+
+// Brute force korumasi: login/register icin 5 deneme / 15dk
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Cok fazla deneme. 15 dakika sonra tekrar deneyin.' },
+});
 
 // ---- GET /api/auth/mode — Tek kullanıcı modu bilgisi ----
 authRoutes.get('/mode', (_req: Request, res: Response) => {
@@ -74,6 +84,7 @@ const loginSchema = z.object({
 // ---- POST /api/auth/register ----
 authRoutes.post(
   '/register',
+  authLimiter,
   asyncHandler(async (req: Request, res: Response) => {
     const data = registerSchema.parse(req.body);
 
@@ -116,6 +127,7 @@ authRoutes.post(
 // ---- POST /api/auth/login ----
 authRoutes.post(
   '/login',
+  authLimiter,
   asyncHandler(async (req: Request, res: Response) => {
     const data = loginSchema.parse(req.body);
 

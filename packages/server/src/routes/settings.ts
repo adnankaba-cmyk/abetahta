@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../models/db.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { asyncHandler, AppError } from '../middleware/errorHandler.js';
 import { logger } from '../lib/logger.js';
 
@@ -61,9 +61,10 @@ settingsRoutes.get(
   })
 );
 
-// PUT /api/settings — Toplu ayar güncelle
+// PUT /api/settings — Toplu ayar güncelle (admin only)
 settingsRoutes.put(
   '/',
+  requireAdmin,
   asyncHandler(async (req: Request, res: Response) => {
     const { settings } = req.body as { settings: Record<string, string> };
 
@@ -94,9 +95,10 @@ settingsRoutes.put(
   })
 );
 
-// PUT /api/settings/:key — Tek ayar güncelle
+// PUT /api/settings/:key — Tek ayar güncelle (admin only)
 settingsRoutes.put(
   '/:key',
+  requireAdmin,
   asyncHandler(async (req: Request, res: Response) => {
     const { key } = req.params;
     const { value } = req.body;

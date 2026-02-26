@@ -1,11 +1,16 @@
 import type { Request, Response, NextFunction } from 'express';
 import jwt, { type SignOptions } from 'jsonwebtoken';
+import type { StringValue } from 'ms';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: '../../.env' });
 
-export const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'refresh-secret';
+if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
+  throw new Error('FATAL: JWT_SECRET ve JWT_REFRESH_SECRET .env dosyasinda tanimlanmali. Fallback kullanilmayacak.');
+}
+
+export const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
 export interface AuthPayload {
   userId: string;
@@ -74,10 +79,10 @@ export { SINGLE_USER_PAYLOAD };
 
 /** Access + refresh token üret */
 export function generateTokens(payload: AuthPayload) {
-  const accessOpts: SignOptions = { expiresIn: (process.env.JWT_EXPIRES_IN || '15m') as any };
+  const accessOpts: SignOptions = { expiresIn: (process.env.JWT_EXPIRES_IN || '15m') as StringValue };
   const accessToken = jwt.sign(payload, JWT_SECRET, accessOpts);
 
-  const refreshOpts: SignOptions = { expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN || '7d') as any };
+  const refreshOpts: SignOptions = { expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN || '7d') as StringValue };
   const refreshToken = jwt.sign(payload, JWT_REFRESH_SECRET, refreshOpts);
 
   return { accessToken, refreshToken } as const;
@@ -86,6 +91,15 @@ export function generateTokens(payload: AuthPayload) {
 /** Refresh token doğrula */
 export function verifyRefreshToken(token: string): AuthPayload {
   return jwt.verify(token, JWT_REFRESH_SECRET) as AuthPayload;
+}
+
+/** Admin role kontrolu middleware'i — authenticate'den sonra kullan */
+export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
+  if (!req.user || req.user.role !== 'admin') {
+    res.status(403).json({ error: 'Bu islem icin admin yetkisi gerekli' });
+    return;
+  }
+  next();
 }
 
 /** Claude API key doğrulama middleware'i */

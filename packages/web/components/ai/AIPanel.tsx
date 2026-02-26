@@ -3,9 +3,12 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Editor } from 'tldraw';
 import { api } from '@/lib/api';
-import { processAIResponse, applyCodeDirect } from '@/lib/ai-canvas-bridge';
+import { processAIResponse, applyCodeDirect, extractMermaid, extractDsl, applyMermaidToCanvas } from '@/lib/ai-canvas-bridge';
+import { executeDsl } from '@/lib/tahta-dsl';
 import { MERMAID_EXAMPLES } from '@/lib/mermaid-renderer';
-import { serializeCanvasState, extractActions, executeAgentActions } from '@/lib/ai-agent';
+import { serializeCanvasState, serializeSmartContext, extractActions, executeAgentActions } from '@/lib/ai-agent';
+import { classifyIntent, buildLocalDsl } from '@/lib/intent-router';
+import { applyTemplateById } from '@/components/canvas/TemplatePanel';
 
 interface AIPanelProps {
   editor: Editor | null;
@@ -20,6 +23,7 @@ interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
+  rawResponse?: string; // Orijinal AI yaniti (code block'lar dahil)
   timestamp: Date;
   shapesAdded?: number;
   actionsExecuted?: number;
@@ -28,9 +32,9 @@ interface Message {
 const EXAMPLE_PROMPTS = [
   'Bu tahtayı analiz et',
   'Akış diyagramı oluştur: Kullanıcı girişi',
-  'Organizasyon şeması öner: 3 departman',
+  'Güneş sistemi ders içeriği oluştur',
   'Seçili şekilleri hizala',
-  'Şekilleri düzenle ve renklendir',
+  'Proje zaman çizelgesi tasarla',
 ];
 
 // Mermaid örnek listesi
@@ -64,11 +68,6 @@ export function AIPanel({ editor, boardId, isVisible, onClose, canvasAnchor }: A
     scrollToBottom();
   }, [messages]);
 
-  const getCurrentBoardState = useCallback(() => {
-    if (!editor) return null;
-    return serializeCanvasState(editor);
-  }, [editor]);
-
   const handleSubmit = useCallback(async (prompt?: string) => {
     const text = prompt || input.trim();
     if (!text || isLoading) return;
@@ -86,16 +85,66 @@ export function AIPanel({ editor, boardId, isVisible, onClose, canvasAnchor }: A
     setError(null);
 
     try {
-      const boardState = getCurrentBoardState();
+      const anchor = canvasAnchor || undefined;
+      const selectedIds = editor ? editor.getSelectedShapeIds() : [];
+      const shapeCount = editor ? editor.getCurrentPageShapes().length : 0;
+
+      // Intent sınıflandırma (yerel, AI yok)
+      const intent = classifyIntent(text, selectedIds.length > 0, shapeCount);
+
+      // ── DRAW_SIMPLE: Yerel DSL, API çağrısı yok ──
+      if (intent.type === 'DRAW_SIMPLE' && editor) {
+        const dslCode = buildLocalDsl(intent.params, anchor);
+        if (dslCode) {
+          const result = executeDsl(editor, dslCode, anchor);
+          const sysMsg: Message = {
+            id: (Date.now() + 1).toString(),
+            role: 'system',
+            content: result.applied
+              ? `${result.shapeCount} sekil eklendi. (yerel, API kullanilmadi)`
+              : `Hata: ${result.errors.join(', ')}`,
+            timestamp: new Date(),
+            shapesAdded: result.shapeCount,
+          };
+          setMessages(prev => [...prev, sysMsg]);
+          setIsLoading(false);
+          return;
+        }
+        // DSL oluşturulamadıysa AI'a devam et
+      }
+
+      // ── TEMPLATE: Şablon uygula, API yok ──
+      if (intent.type === 'TEMPLATE' && intent.params?.templateId && editor) {
+        const result = applyTemplateById(editor, intent.params.templateId);
+        if (result.applied) {
+          const sysMsg: Message = {
+            id: (Date.now() + 1).toString(),
+            role: 'system',
+            content: `"${result.name}" sablonu uygulandi: ${result.shapeCount} sekil eklendi. (yerel, API kullanilmadi)`,
+            timestamp: new Date(),
+            shapesAdded: result.shapeCount,
+          };
+          setMessages(prev => [...prev, sysMsg]);
+          setIsLoading(false);
+          return;
+        }
+        // Şablon bulunamadıysa AI'a devam et
+      }
+
+      // ── API çağrısı gereken intent'ler ──
+      const smartContext = editor
+        ? serializeSmartContext(editor, intent.contextStrategy)
+        : null;
 
       const data = await api.post<{ response: string }>('/api/ai/chat', {
         message: text,
         boardId,
-        boardState,
+        boardState: smartContext,
+        spatialText: smartContext?.spatialText || undefined,
+        intent: intent.type,
       });
 
-      // 1. Mermaid varsa canvas'a uygula — anchor point ile mouse pozisyonuna yerleştir
-      const anchor = canvasAnchor || undefined;
+      // 1. Mermaid/DSL varsa canvas'a uygula
       const { displayText, bridgeResult } = await processAIResponse(editor, data.response, anchor);
 
       // 2. Actions varsa canvas üzerinde düzenleme yap
@@ -118,6 +167,7 @@ export function AIPanel({ editor, boardId, isVisible, onClose, canvasAnchor }: A
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: finalText,
+        rawResponse: data.response,
         timestamp: new Date(),
         shapesAdded: bridgeResult?.shapeCount,
         actionsExecuted,
@@ -141,7 +191,7 @@ export function AIPanel({ editor, boardId, isVisible, onClose, canvasAnchor }: A
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, getCurrentBoardState, boardId]);
+  }, [input, isLoading, editor, boardId, canvasAnchor]);
 
   // Mermaid kodunu doğrudan canvas'a uygula
   const handleRunCode = useCallback(async () => {
@@ -161,6 +211,51 @@ export function AIPanel({ editor, boardId, isVisible, onClose, canvasAnchor }: A
     };
     setMessages(prev => [...prev, sysMessage]);
   }, [editor, codeInput, canvasAnchor]);
+
+  // Mesajdaki code block'u tekrar canvas'a uygula
+  const handleApplyCodeBlock = useCallback(async (rawText: string) => {
+    if (!editor) return;
+    const anchor = canvasAnchor || undefined;
+
+    // Mermaid dene
+    const mermaid = extractMermaid(rawText);
+    if (mermaid) {
+      const result = await applyMermaidToCanvas(editor, mermaid.mermaidCode, anchor);
+      const sysMsg: Message = {
+        id: Date.now().toString(),
+        role: 'system',
+        content: result.applied
+          ? `Mermaid tekrar uygulandi: ${result.shapeCount} sekil eklendi.`
+          : `Mermaid hatasi: ${result.errors.join(', ')}`,
+        timestamp: new Date(),
+        shapesAdded: result.shapeCount,
+      };
+      setMessages(prev => [...prev, sysMsg]);
+      return;
+    }
+
+    // DSL dene
+    const dsl = extractDsl(rawText);
+    if (dsl) {
+      const result = executeDsl(editor, dsl.dslCode, anchor);
+      const sysMsg: Message = {
+        id: Date.now().toString(),
+        role: 'system',
+        content: result.applied
+          ? `DSL tekrar uygulandi: ${result.shapeCount} sekil eklendi.`
+          : `DSL hatasi: ${result.errors.join(', ')}`,
+        timestamp: new Date(),
+        shapesAdded: result.shapeCount,
+      };
+      setMessages(prev => [...prev, sysMsg]);
+    }
+  }, [editor, canvasAnchor]);
+
+  // Mesajda code block var mi kontrol
+  const hasCodeBlock = (raw?: string): boolean => {
+    if (!raw) return false;
+    return raw.includes('```mermaid') || raw.includes('```dsl');
+  };
 
   // Örnek kodu yükle
   const loadExample = useCallback((example: typeof MERMAID_EXAMPLE_LIST[0]) => {
@@ -465,6 +560,32 @@ export function AIPanel({ editor, boardId, isVisible, onClose, canvasAnchor }: A
                 </svg>
                 {msg.actionsExecuted} duzenleme uygulandi
               </div>
+            )}
+            {msg.role === 'assistant' && hasCodeBlock(msg.rawResponse) && (
+              <button
+                type="button"
+                onClick={() => msg.rawResponse && handleApplyCodeBlock(msg.rawResponse)}
+                style={{
+                  background: '#F0FDF4',
+                  border: '1px solid #86EFAC',
+                  borderRadius: '6px',
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  color: '#166534',
+                  cursor: 'pointer',
+                  marginTop: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  fontWeight: '600',
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="M12 8v8m-4-4h8" />
+                </svg>
+                Canvas'a Tekrar Uygula
+              </button>
             )}
             <div
               style={{

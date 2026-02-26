@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
 import { wsLog } from '@/lib/logger';
+import { useAuthStore } from '@/store/auth';
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:4001';
 
@@ -36,7 +37,7 @@ export function useCollaboration({
   userName,
   enabled = true
 }: UseCollaborationOptions) {
-  const ydocRef = useRef<Y.Doc | null>(null);
+  const [ydoc, setYdoc] = useState<Y.Doc | null>(null);
   const providerRef = useRef<WebsocketProvider | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [peers, setPeers] = useState<Peer[]>([]);
@@ -47,43 +48,54 @@ export function useCollaboration({
     if (!enabled || !boardId) return;
 
     try {
-      const ydoc = new Y.Doc();
-      ydocRef.current = ydoc;
+      const doc = new Y.Doc();
 
-      const provider = new WebsocketProvider(WS_URL, `board-${boardId}`, ydoc);
+      // JWT token'i WS URL'ine query param olarak ekle (auth icin)
+      const token = useAuthStore.getState().accessToken;
+      const wsParams: Record<string, string> = {};
+      if (token) wsParams.token = token;
+
+      const provider = new WebsocketProvider(WS_URL, `board-${boardId}`, doc, {
+        params: wsParams,
+      });
       providerRef.current = provider;
 
-    // Kendi bilgilerini ayarla
-    provider.awareness.setLocalState({
-      id: userId,
-      name: userName,
-      color: myColor,
-      cursor: null,
-      selection: []
-    });
+      // Kendi bilgilerini ayarla
+      provider.awareness.setLocalState({
+        id: userId,
+        name: userName,
+        color: myColor,
+        cursor: null,
+        selection: []
+      });
 
-    // Bağlantı durumu
-    provider.on('status', ({ status }: { status: string }) => {
-      setIsConnected(status === 'connected');
-      wsLog.debug('Durum:', status);
-    });
+      // Bağlantı durumu
+      provider.on('status', ({ status }: { status: string }) => {
+        setIsConnected(status === 'connected');
+        wsLog.debug('Durum:', status);
+      });
 
-    // Peer değişiklikleri
-    provider.awareness.on('change', () => {
-      const states = Array.from(provider.awareness.getStates().entries());
-      const otherPeers: Peer[] = states
-        .filter(([clientId]) => clientId !== provider.awareness.clientID)
-        .map(([, state]) => state as Peer)
-        .filter(state => state && state.id);
+      // Peer değişiklikleri
+      provider.awareness.on('change', () => {
+        const states = Array.from(provider.awareness.getStates().entries());
+        const otherPeers: Peer[] = states
+          .filter(([clientId]) => clientId !== provider.awareness.clientID)
+          .map(([, state]) => state as Peer)
+          .filter(state => state && state.id);
 
-      setPeers(otherPeers);
-    });
+        setPeers(otherPeers);
+      });
 
-    wsLog.debug('Bağlanıyor:', boardId);
+      wsLog.debug('Bağlanıyor:', boardId);
+
+      // ydoc'u state'e yaz — useTldrawYjsSync re-render ile ydoc alabilsin
+      setYdoc(doc);
 
       return () => {
         provider.destroy();
-        ydoc.destroy();
+        doc.destroy();
+        providerRef.current = null;
+        setYdoc(null);
         wsLog.debug('Bağlantı kapatıldı');
       };
     } catch (err) {
@@ -125,23 +137,13 @@ export function useCollaboration({
     }
   }, []);
 
-  // Shapes map'i al (Y.Map)
-  const getShapesMap = useCallback(() => {
-    if (ydocRef.current) {
-      return ydocRef.current.getMap('shapes');
-    }
-    return null;
-  }, []);
-
   return {
-    ydoc: ydocRef.current,
-    provider: providerRef.current,
+    ydoc,
     isConnected,
     peers,
     myColor,
     updateCursor,
     hideCursor,
     updateSelection,
-    getShapesMap
   };
 }
