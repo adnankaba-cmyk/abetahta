@@ -85,7 +85,7 @@ app.get('/api/health', (_req, res) => {
 // ---- Routes ----
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
-app.use('/api/boards', boardRoutes);
+app.use('/api/boards', express.json({ limit: '5mb' }), boardRoutes);
 app.use('/api/elements', elementRoutes);
 app.use('/api/connections', connectionRoutes);
 app.use('/api/claude', claudeRoutes);

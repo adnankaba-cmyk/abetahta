@@ -29,12 +29,13 @@ services:
     image: redis:7-alpine
     container_name: abetahta-redis
     restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:-abetahta_redis_dev}
     ports:
       - "6379:6379"
     volumes:
       - redisdata:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-abetahta_redis_dev}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5

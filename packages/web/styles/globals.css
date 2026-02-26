@@ -40,26 +40,3 @@ html, body {
 ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-text-secondary); }
 
-/* ========================================
-   EXCALIDRAW DUZELTMELERI
-   ======================================== */
-
-/* Excalidraw container tam ekran olsun */
-.excalidraw {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-/* Canvas'in pointer events almasini sagla */
-.excalidraw canvas {
-  pointer-events: auto !important;
-}
-
-/* Sadece welcome/hint ekranini gizle - toolbar ve canvas'a dokunma */
-.excalidraw .welcome-screen-center,
-.excalidraw [class*="welcome-screen"],
-.excalidraw .HintViewer,
-.excalidraw [class*="HintViewer"] {
-  display: none !important;
-  pointer-events: none !important;
-}

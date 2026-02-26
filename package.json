@@ -24,7 +24,6 @@
     "@types/cookie-parser": "^1.4.10",
     "@types/ws": "^8.18.1",
     "concurrently": "^9.1.0",
-    "puppeteer": "^24.37.5",
     "rimraf": "^6.0.0",
     "typescript": "^5.7.0"
   },
