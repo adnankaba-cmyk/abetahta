@@ -22,7 +22,8 @@ import { db } from './models/db.js';
 import { logger, httpLogger, socketLogger } from './lib/logger.js';
 import { setIO } from './lib/notify.js';
 import jwt from 'jsonwebtoken';
-import { JWT_SECRET } from './middleware/auth.js';
+import rateLimit from 'express-rate-limit';
+import { JWT_SECRET, isSingleUserMode, SINGLE_USER_PAYLOAD } from './middleware/auth.js';
 
 dotenv.config({ path: '../../.env' });
 
@@ -59,9 +60,18 @@ const io = new SocketIO(httpServer, {
 app.use(helmet());
 app.use(cors(corsOptions));
 app.use(pinoHttp({ logger: httpLogger, autoLogging: { ignore: (req) => req.url === '/api/health' } }));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
+
+// Global rate limit: IP basina 200 istek / dakika
+app.use(rateLimit({
+  windowMs: 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.url === '/api/health',
+}));
 
 // ---- Health Check ----
 app.get('/api/health', (_req, res) => {
@@ -90,6 +100,12 @@ setIO(io);
 io.on('connection', (socket) => {
   socketLogger.info({ socketId: socket.id }, 'Bağlandı');
 
+  // Tek kullanici modunda otomatik auth
+  if (isSingleUserMode()) {
+    socket.data.userId = SINGLE_USER_PAYLOAD.userId;
+    socket.join(`user:${SINGLE_USER_PAYLOAD.userId}`);
+  }
+
   // Kullanici kimlik dogrulama — JWT token ile bildirim odasi
   socket.on('authenticate', (token: string) => {
     if (!token) return;
@@ -104,9 +120,15 @@ io.on('connection', (socket) => {
   });
 
   socket.on('join-board', (boardId: string) => {
+    // Auth olmadan board odasina katilma engeli
+    if (!isSingleUserMode() && !socket.data.userId) {
+      socketLogger.warn({ socketId: socket.id }, 'join-board reddedildi: auth yok');
+      return;
+    }
     socket.join(`board:${boardId}`);
     socket.to(`board:${boardId}`).emit('user-joined', {
       socketId: socket.id,
+      userId: socket.data.userId,
       timestamp: Date.now(),
     });
   });
@@ -118,9 +140,11 @@ io.on('connection', (socket) => {
     });
   });
 
-  socket.on('cursor-move', (data: { boardId: string; x: number; y: number; userId: string }) => {
+  socket.on('cursor-move', (data: { boardId: string; x: number; y: number }) => {
+    // userId server'dan — istemci spoof edemez
+    if (!socket.data.userId) return;
     socket.to(`board:${data.boardId}`).emit('cursor-update', {
-      userId: data.userId,
+      userId: socket.data.userId,
       x: data.x,
       y: data.y,
     });

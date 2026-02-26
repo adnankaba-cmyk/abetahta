@@ -75,6 +75,14 @@ export default function AdminPage() {
   const { user } = useAuthStore();
   const router = useRouter();
 
+  // Admin rol kontrolu — admin degilse dashboard'a yonlendir
+  useEffect(() => {
+    if (user && user.role !== 'admin') {
+      toast.error('Bu sayfaya erisim yetkiniz yok');
+      router.replace('/dashboard');
+    }
+  }, [user, router]);
+
   // Ayarları yükle
   const loadSettings = useCallback(async () => {
     try {

@@ -27,7 +27,14 @@ redis.on('error', (err) => {
 export const cache = {
   async get<T>(key: string): Promise<T | null> {
     const data = await redis.get(key);
-    return data ? JSON.parse(data) : null;
+    if (!data) return null;
+    try {
+      return JSON.parse(data) as T;
+    } catch {
+      redisLogger.warn({ key }, 'Redis cache bozuk JSON — siliniyor');
+      await redis.del(key);
+      return null;
+    }
   },
 
   async set(key: string, value: unknown, ttlSeconds = 300): Promise<void> {

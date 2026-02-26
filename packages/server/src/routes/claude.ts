@@ -179,12 +179,19 @@ claudeRoutes.post(
       throw new AppError('type zorunlu', 400);
     }
 
+    // Board varlik kontrolu
+    const boardCheck = await db.query('SELECT id FROM boards WHERE id = $1', [boardId]);
+    if (boardCheck.rows.length === 0) {
+      throw new AppError('Board bulunamadi', 404);
+    }
+
     const result = await db.query(
       `INSERT INTO elements (board_id, type, x, y, width, height, content, created_by, assigned_to, status, priority)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 'claude-ai', $8, $9, $10)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *`,
       [boardId, type, x ?? 0, y ?? 0, width ?? 200, height ?? 150,
-       JSON.stringify(content || {}), assigned_to, status ?? 'none', priority ?? 'none']
+       JSON.stringify(content || {}), req.user?.userId || 'claude-ai',
+       assigned_to, status ?? 'none', priority ?? 'none']
     );
 
     await cache.invalidateBoard(boardId);
@@ -247,7 +254,7 @@ claudeRoutes.post(
     // Analiz sonucunu note olarak tahta'ya ekle
     const result = await db.query(
       `INSERT INTO elements (board_id, type, x, y, width, height, content, created_by)
-       VALUES ($1, 'note', 50, 50, 400, 300, $2, 'claude-ai')
+       VALUES ($1, 'note', 50, 50, 400, 300, $2, NULL)
        RETURNING *`,
       [
         boardId,
