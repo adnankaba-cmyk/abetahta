@@ -35,34 +35,35 @@ export function useTldrawYjsSync({ editor, ydoc, enabled = true }: UseTldrawYjsS
 
       isLocalChangeRef.current = true;
 
-      ydoc.transact(() => {
-        for (const [id, change] of Object.entries(event.changes.added)) {
-          const record = change as TLRecord;
-          if (record.typeName === 'shape') {
-            shapesMap.set(id, JSON.parse(JSON.stringify(record)));
+      try {
+        ydoc.transact(() => {
+          for (const [id, change] of Object.entries(event.changes.added)) {
+            const record = change as TLRecord;
+            if (record.typeName === 'shape') {
+              shapesMap.set(id, JSON.parse(JSON.stringify(record)));
+            }
           }
-        }
 
-        for (const [id, [, after]] of Object.entries(event.changes.updated)) {
-          const record = after as TLRecord;
-          if (record.typeName === 'shape') {
-            shapesMap.set(id, JSON.parse(JSON.stringify(record)));
+          for (const [id, [, after]] of Object.entries(event.changes.updated)) {
+            const record = after as TLRecord;
+            if (record.typeName === 'shape') {
+              shapesMap.set(id, JSON.parse(JSON.stringify(record)));
+            }
           }
-        }
 
-        for (const [id, change] of Object.entries(event.changes.removed)) {
-          const record = change as TLRecord;
-          if (record.typeName === 'shape') {
-            shapesMap.delete(id);
+          for (const [id, change] of Object.entries(event.changes.removed)) {
+            const record = change as TLRecord;
+            if (record.typeName === 'shape') {
+              shapesMap.delete(id);
+            }
           }
-        }
-      });
-
-      isLocalChangeRef.current = false;
+        });
+      } finally {
+        isLocalChangeRef.current = false;
+      }
     };
 
     const cleanup = editor.store.listen(handleStoreChange, {
-      source: 'user',
       scope: 'document',
     });
 
@@ -76,42 +77,44 @@ export function useTldrawYjsSync({ editor, ydoc, enabled = true }: UseTldrawYjsS
 
       isRemoteChangeRef.current = true;
 
-      const toAdd: TLRecord[] = [];
-      const toUpdate: TLRecord[] = [];
-      const toRemove: TLRecord['id'][] = [];
+      try {
+        const toAdd: TLRecord[] = [];
+        const toUpdate: TLRecord[] = [];
+        const toRemove: TLRecord['id'][] = [];
 
-      event.changes.keys.forEach((change, key) => {
-        if (change.action === 'add' || change.action === 'update') {
-          const record = shapesMap.get(key);
-          if (record) {
+        event.changes.keys.forEach((change, key) => {
+          if (change.action === 'add' || change.action === 'update') {
+            const record = shapesMap.get(key);
+            if (record) {
+              const existing = editor.store.get(key as TLRecord['id']);
+              if (existing) {
+                toUpdate.push(record as unknown as TLRecord);
+              } else {
+                toAdd.push(record as unknown as TLRecord);
+              }
+            }
+          } else if (change.action === 'delete') {
             const existing = editor.store.get(key as TLRecord['id']);
             if (existing) {
-              toUpdate.push(record as unknown as TLRecord);
-            } else {
-              toAdd.push(record as unknown as TLRecord);
+              toRemove.push(key as TLRecord['id']);
             }
           }
-        } else if (change.action === 'delete') {
-          const existing = editor.store.get(key as TLRecord['id']);
-          if (existing) {
-            toRemove.push(key as TLRecord['id']);
+        });
+
+        editor.store.mergeRemoteChanges(() => {
+          if (toAdd.length > 0) {
+            editor.store.put(toAdd);
           }
-        }
-      });
-
-      editor.store.mergeRemoteChanges(() => {
-        if (toAdd.length > 0) {
-          editor.store.put(toAdd);
-        }
-        if (toUpdate.length > 0) {
-          editor.store.put(toUpdate);
-        }
-        if (toRemove.length > 0) {
-          editor.store.remove(toRemove);
-        }
-      });
-
-      isRemoteChangeRef.current = false;
+          if (toUpdate.length > 0) {
+            editor.store.put(toUpdate);
+          }
+          if (toRemove.length > 0) {
+            editor.store.remove(toRemove);
+          }
+        });
+      } finally {
+        isRemoteChangeRef.current = false;
+      }
     };
 
     shapesMap.observe(handleYjsChange);
@@ -120,20 +123,23 @@ export function useTldrawYjsSync({ editor, ydoc, enabled = true }: UseTldrawYjsS
     // Bağlanınca remote'daki mevcut shape'leri yükle
     if (shapesMap.size > 0) {
       isRemoteChangeRef.current = true;
-      const remoteShapes: TLRecord[] = [];
+      try {
+        const remoteShapes: TLRecord[] = [];
 
-      shapesMap.forEach((value, key) => {
-        if (!editor.store.get(key as TLRecord['id'])) {
-          remoteShapes.push(value as unknown as TLRecord);
-        }
-      });
-
-      if (remoteShapes.length > 0) {
-        editor.store.mergeRemoteChanges(() => {
-          editor.store.put(remoteShapes);
+        shapesMap.forEach((value, key) => {
+          if (!editor.store.get(key as TLRecord['id'])) {
+            remoteShapes.push(value as unknown as TLRecord);
+          }
         });
+
+        if (remoteShapes.length > 0) {
+          editor.store.mergeRemoteChanges(() => {
+            editor.store.put(remoteShapes);
+          });
+        }
+      } finally {
+        isRemoteChangeRef.current = false;
       }
-      isRemoteChangeRef.current = false;
     }
 
     return () => {

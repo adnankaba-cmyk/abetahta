@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
 import { wsLog } from '@/lib/logger';
@@ -75,15 +75,20 @@ export function useCollaboration({
         wsLog.debug('Durum:', status);
       });
 
-      // Peer değişiklikleri
+      // Peer değişiklikleri — throttle ile (100ms max, cursor 60Hz firtinasini onle)
+      let peerThrottleTimer: ReturnType<typeof setTimeout> | null = null;
       provider.awareness.on('change', () => {
-        const states = Array.from(provider.awareness.getStates().entries());
-        const otherPeers: Peer[] = states
-          .filter(([clientId]) => clientId !== provider.awareness.clientID)
-          .map(([, state]) => state as Peer)
-          .filter(state => state && state.id);
+        if (peerThrottleTimer) return;
+        peerThrottleTimer = setTimeout(() => {
+          peerThrottleTimer = null;
+          const states = Array.from(provider.awareness.getStates().entries());
+          const otherPeers: Peer[] = states
+            .filter(([clientId]) => clientId !== provider.awareness.clientID)
+            .map(([, state]) => state as Peer)
+            .filter(state => state && state.id);
 
-        setPeers(otherPeers);
+          setPeers(otherPeers);
+        }, 100);
       });
 
       wsLog.debug('Bağlanıyor:', boardId);
@@ -92,6 +97,7 @@ export function useCollaboration({
       setYdoc(doc);
 
       return () => {
+        if (peerThrottleTimer) clearTimeout(peerThrottleTimer);
         provider.destroy();
         doc.destroy();
         providerRef.current = null;

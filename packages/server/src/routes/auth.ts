@@ -8,6 +8,12 @@ import { z } from 'zod';
 
 export const authRoutes = Router();
 
+// Kullanilmis refresh token'lari (rotation icin) — tek sunucu icin yeterli
+// Production'da Redis veya DB kullanilmali
+const usedRefreshTokens = new Set<string>();
+// Bellek tasma onlemi: 1 saatte bir temizle
+setInterval(() => { usedRefreshTokens.clear(); }, 60 * 60 * 1000);
+
 // Brute force korumasi: login/register icin 5 deneme / 15dk
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -186,7 +192,16 @@ authRoutes.post(
       throw new AppError('Refresh token eksik', 400);
     }
 
+    // Token rotation: ayni refresh token tekrar kullanilamaz
+    if (usedRefreshTokens.has(refreshToken)) {
+      throw new AppError('Refresh token zaten kullanildi (replay attack?)', 401);
+    }
+
     const payload = verifyRefreshToken(refreshToken);
+
+    // Eski token'i blacklist'e ekle
+    usedRefreshTokens.add(refreshToken);
+
     const tokens = generateTokens({
       userId: payload.userId,
       email: payload.email,
