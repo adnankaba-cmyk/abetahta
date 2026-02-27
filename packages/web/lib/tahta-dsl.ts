@@ -54,10 +54,69 @@ const CMD_ALIASES: Record<string, string> = {
 };
 
 /**
+ * AI'nin hallüsinasyon ile ürettiği COMMAND(x,y,w,h,"text") formatını
+ * standart "COMMAND x,y w,h "text"" formatına dönüştürür.
+ * Örnek: RECTANGLE(50,200,150,60,"Başla") → KUTU 50,200 150,60 "Başla"
+ */
+function normalizeParenFormat(line: string): string {
+  const parenMatch = line.match(/^([A-ZÇĞİÖŞÜa-z_]+)\s*\(([^)]*)\)\s*$/i);
+  if (!parenMatch) return line;
+
+  const cmd = parenMatch[1].toUpperCase();
+  // Parse CSV args, respecting quoted strings
+  const argsRaw = parenMatch[2];
+  const args: string[] = [];
+  let cur = '';
+  let inQuote = false;
+  for (const ch of argsRaw) {
+    if (ch === '"' || ch === "'") { inQuote = !inQuote; cur += ch; }
+    else if (ch === ',' && !inQuote) { args.push(cur.trim()); cur = ''; }
+    else cur += ch;
+  }
+  if (cur.trim()) args.push(cur.trim());
+
+  // Strip surrounding quotes from string args
+  const arg = (i: number) => args[i]?.replace(/^['"]|['"]$/g, '') ?? '';
+  const num = (i: number) => args[i]?.trim() ?? '0';
+
+  switch (cmd) {
+    case 'RECTANGLE': case 'BOX': case 'RECT': case 'KUTU':
+      // (x, y, w, h, "text", color?)
+      return `KUTU ${num(0)},${num(1)} ${num(2)},${num(3)} "${arg(4)}"${args[5] ? ' ' + arg(5) : ''}`;
+    case 'CIRCLE': case 'ELLIPSE': case 'OVAL': case 'DAIRE':
+      // (x, y, r, "text", color?)
+      return `DAIRE ${num(0)},${num(1)} ${num(2)} "${arg(3)}"${args[4] ? ' ' + arg(4) : ''}`;
+    case 'ARROW': case 'OK':
+      // (x1, y1, x2, y2, color?)
+      return `OK ${num(0)},${num(1)} -> ${num(2)},${num(3)}${args[4] ? ' ' + arg(4) : ''}`;
+    case 'TEXT': case 'LABEL': case 'YAZI':
+      // (x, y, "text", size?)
+      return `YAZI ${num(0)},${num(1)} "${arg(2)}"${args[3] ? ' ' + num(3) : ''}`;
+    case 'NOTE': case 'STICKY': case 'NOT':
+      // (x, y, "text", color?)
+      return `NOT ${num(0)},${num(1)} "${arg(2)}"${args[3] ? ' ' + arg(3) : ''}`;
+    case 'START': case 'BASLANGIC':
+      return `BASLANGIC ${num(0)},${num(1)} "${arg(2)}"`;
+    case 'END': case 'BITIS':
+      return `BITIS ${num(0)},${num(1)} "${arg(2)}"`;
+    case 'PROCESS': case 'ISLEM':
+      return `ISLEM ${num(0)},${num(1)} "${arg(2)}"`;
+    case 'DECISION': case 'KARAR':
+      return `KARAR ${num(0)},${num(1)} "${arg(2)}"`;
+    default:
+      return line; // Bilinmeyen format — olduğu gibi bırak
+  }
+}
+
+/**
  * Normalize line: replace English command with Turkish equivalent
  * so that the regex patterns (which use Turkish names) can match.
  */
 function normalizeLine(line: string): string {
+  // Önce parantez formatını düzelt: COMMAND(args) → COMMAND args
+  const deParened = normalizeParenFormat(line);
+  if (deParened !== line) return deParened;
+
   const firstSpace = line.search(/\s/);
   const rawCmd = firstSpace === -1 ? line : line.substring(0, firstSpace);
   const upperCmd = rawCmd.toUpperCase();

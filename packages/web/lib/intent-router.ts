@@ -192,6 +192,11 @@ export function classifyIntent(
     return { type: 'ANALYZE', contextStrategy: 'summary' };
   }
 
+  // 5b. Genel çizim fiili — "3 kutu çiz", "şekil oluştur" gibi henüz yakalanmamış çizim istekleri
+  if (DRAW_VERBS.test(trimmed)) {
+    return { type: 'DRAW_COMPLEX', contextStrategy: 'viewport' };
+  }
+
   // 6. Default: CHAT
   return { type: 'CHAT', contextStrategy: 'none' };
 }
