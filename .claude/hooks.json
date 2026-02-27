@@ -1,10 +1,15 @@
-﻿{
-    "hooks":  {
-                  "postToolUse":  [
-                                      {
-                                          "matcher":  "Write|Edit",
-                                          "command":  "npx tsc --noEmit 2\u003e\u00261 | tail -5"
-                                      }
-                                  ]
-              }
+{
+  "hooks": {
+    "postToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "command": "(cd /d/AbeTahta/packages/web && npx tsc --noEmit 2>&1 | grep 'error TS' | head -5); (cd /d/AbeTahta/packages/server && npx tsc --noEmit 2>&1 | grep 'error TS' | head -5)"
+      }
+    ],
+    "sessionStart": [
+      {
+        "command": "cat /d/AbeTahta/PROJE_DURUMU.md 2>/dev/null | head -50"
+      }
+    ]
+  }
 }

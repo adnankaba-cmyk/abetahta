@@ -35,11 +35,11 @@ Kullanıcı "onar" dediğinde SORGUSUZ SUALSIZ onarıma başlarsın.
 
 ```bash
 # 1. Build durumu
-cd packages/web && npx tsc --noEmit 2>&1 | head -100
-cd packages/server && npx tsc --noEmit 2>&1 | head -100
+cd /d/AbeTahta/packages/web && npx tsc --noEmit 2>&1 | head -100
+cd /d/AbeTahta/packages/server && npx tsc --noEmit 2>&1 | head -100
 
 # 2. Kullanılmayan export/import
-grep -rn "export " packages/ --include="*.ts" --include="*.tsx" | head -50
+grep -rn "export " /d/AbeTahta/packages/ --include="*.ts" --include="*.tsx" | head -50
 
 # 3. Hata veren dosyalar listesi
 ```
@@ -126,10 +126,10 @@ Her alt ajandan gelen raporu topla:
 
 ```bash
 # Her şey bittikten sonra:
-cd packages/web && npx tsc --noEmit 2>&1     # 0 hata olmalı
-cd packages/server && npx tsc --noEmit 2>&1  # 0 hata olmalı
-cd packages/web && npm run build 2>&1        # başarılı olmalı
-cd packages/server && npm run build 2>&1     # başarılı olmalı
+cd /d/AbeTahta/packages/web && npx tsc --noEmit 2>&1     # 0 hata olmalı
+cd /d/AbeTahta/packages/server && npx tsc --noEmit 2>&1  # 0 hata olmalı
+cd /d/AbeTahta/packages/web && npm run build 2>&1        # başarılı olmalı
+cd /d/AbeTahta/packages/server && npm run build 2>&1     # başarılı olmalı
 ```
 
 Hâlâ hata varsa → tekrar ilgili alt ajanı çalıştır. 0 HATA olana kadar döngü devam eder.

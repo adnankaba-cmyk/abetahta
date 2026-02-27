@@ -1,1 +1,1 @@
-﻿proje-takipci ajanini cagir. Bu oturumda yapilanlari ozetle. sessions.md ye yaz. Sonraki oturum icin 3 is belirle.
+proje-takipci ajanini cagir. Gorev: Bu oturumda yapilanlari ozetle ve D:\AbeTahta\.claude\logs\sessions.md dosyasina YAZ (Write/Edit kullan). Sonraki oturum icin 3 somut is belirle. Log yazilmadan oturum kapanmaz.

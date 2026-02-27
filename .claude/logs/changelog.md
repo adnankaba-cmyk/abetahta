@@ -1,5 +1,26 @@
 ﻿# abeTahta - Changelog
 ---
+## [2026-02-27] database-schema.sql 10 → 16 Tablo (0cd21a4)
+- DOCS: database-schema.sql tamamen yeniden yazildi (v2.0)
+- FEAT: 6 eksik tablo eklendi: settings, board_snapshots, ai_conversations, active_sessions, dsl_scripts, shape_timeline
+- FIX: notifications tablosu tamamlandi
+- FIX: Tum CREATE TABLE IF NOT EXISTS ile idempotent hale getirildi
+- FIX: Trigger'lar DO...EXCEPTION WHEN duplicate_object ile guvenliklestirildi
+- FEAT: 11 varsayilan settings seed kaydi eklendi
+- SYNC: docs/database-schema.sql ile senkronize edildi (Docker init)
+
+## [2026-02-27] ESLint Config Kurulumu — Web + Server (041403a)
+- FIX (web): board/[id]/page.tsx — apostrophe escape (react/no-unescaped-entities)
+- FIX (web): AIPanel.tsx — 2 apostrophe escape
+- FIX (web): ai-canvas-bridge.ts — prefer-const (let → const/let ayristirma)
+- FEAT (server): eslint, @eslint/js, typescript-eslint devDependencies eklendi
+- FEAT (server): eslint.config.mjs olusturuldu (typescript-eslint flat config)
+- FEAT (server): package.json'a lint scripti eklendi
+- FIX (server): auth.ts — declare global → declare module 'express-serve-static-core'
+- FIX (server): ws/server.ts — @ts-ignore → @ts-expect-error
+- FIX (server): ws/server.ts — useless-assignment duzeltildi (null → uninitialized)
+- Sonuc: web 0 hata, server 0 hata (1 kabuledilebilir uyari)
+
 ## [2026-02-26] Smart Placement — İkinci Sorgu Akıllı Yerleştirme
 - BUG: İkinci AI sorgusunda yeni şekiller eski şekillerin üstüne biniyordu
 - FIX: `computeSmartAnchor()` — buildSpatialMap + findBestPlacement kullanıyor
@@ -82,3 +103,15 @@ Kurulan: 10 ajan, 5 log, settings, MCP, hooks, 6 command
 
 ### Karar
 ONAYLANDI — 7.5/10
+
+---
+## [2026-02-27] Tahta Temizleme Bug Fix — Canvas Focus Bagimliligi Kaldirildi
+- BUG: Temizle butonu `setCurrentTool('eraser')` cagiriyordu — sekil silmiyordu
+- BUG: Delete tusu canvas focus olmadanda calismiyordu — UX sorunu
+- FIX: `deleteShapes([...getCurrentPageShapeIds()])` ile direkt silme
+- FIX: Confirm dialog eklendi — kullanicidan onay isteniyor
+- FIX: Canvas focus bagimliligi kaldirildi
+- Dosya: `packages/web/components/canvas/TldrawCanvas.tsx`
+- Commit: `29a03c3`
+- Dogrulama: tsc --noEmit temiz, Playwright browser testi gecti
+
