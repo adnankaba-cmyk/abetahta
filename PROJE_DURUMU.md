@@ -1,6 +1,6 @@
 # abeTahta — PROJE DURUMU
 
-> **Son Guncelleme:** 2026-02-26 (FAZ0 guvenlik yamalari tamamlandi)
+> **Son Guncelleme:** 2026-02-27 (shape sync onaylandi, logout bug duzeltildi)
 > **Guncelleme Protokolu:** Bu dosya her oturum basinda okunur. Her onemli degisiklikten sonra guncellenir.
 
 ---
@@ -61,7 +61,7 @@
 |---|-------|-------|-------|
 | 1 | ~~DSL pipeline KOPUK~~ **COZULDU** | DSL v2 pipeline calisiyor. v1 basit komutlar icin AI bazen DSL yerine JS/Python donduruyor (prompt sorunu) | dsl-v2/, ai-canvas-bridge.ts, ai.ts |
 | 2 | **Mermaid = resim** | Diyagram tek SVG image → kutu/ok AYRI AYRI duzenlenemez | ai-canvas-bridge.ts |
-| 3 | **Shape sync BELIRSIZ** | useTldrawYjsSync.ts var ama useCollaboration.ts ile Y.Map isim farki ('tldraw-shapes' vs 'shapes') | useCollaboration.ts, useTldrawYjsSync.ts |
+| 3 | ~~Shape sync BELIRSIZ~~ **COZULDU** | 2 sekme testi yapildi — sekiller gercek zamanli sync oluyor, presence (2 kisi) gorunuyor | useCollaboration.ts, useTldrawYjsSync.ts |
 | 4 | **AI agent TEST YOK** | ai-agent.ts (455 satir): MOVE, RESIZE, DELETE kodu var ama hic test edilmemis | ai-agent.ts |
 | 5 | ~~Rate limiting YOK~~ **COZULDU** | Global rate limit aktif (200 req/dk), AI chat icin ozel limiter (20 req/dk) | index.ts, ai.ts |
 
@@ -94,7 +94,8 @@
 | Gercek zamanli isbirligi | 4/10 | |
 | Test coverage (%5.9) | 2/10 | |
 | DevOps | 2/10 | |
-| **GENEL (kullanici deneyimi)** | **6/10** | 5.5→6 |
+| Gercek zamanli isbirligi | 8/10 | 4→8 (shape sync onaylandi, presence calisiyor) |
+| **GENEL (kullanici deneyimi)** | **7/10** | 6→7 |
 
 ---
 
