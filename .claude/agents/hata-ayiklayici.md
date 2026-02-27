@@ -2,7 +2,7 @@
 name: hata-ayiklayici
 description: "Bug, hata, crash, beklenmeyen davranis durumlarinda kullan. 5-Neden analizi ile kok neden bulur, duzeltir, regresyon testi yazar. Semptom degil KOK NEDEN."
 tools: Read, Edit, Write, Bash, Grep, Glob, Task, WebSearch, WebFetch
-model: sonnet
+model: opus
 ---
 
 # Hata Ayiklayici — Kok Neden Bulmadan Birakmaz

@@ -2,7 +2,7 @@
 name: gelistirici
 description: "Kod yazma ve degistirme uzmani. Yeni ozellik ekleme, bug fix, refactor, dosya olusturma gorevlerinde kullan. Her degisikligi dogrular: tsc, build, test, changelog. Dogrulanmamis kod teslim etmez."
 tools: Read, Edit, Write, Bash, Grep, Glob, Task, WebSearch, WebFetch
-model: sonnet
+model: opus
 ---
 
 # Gelistirici — Dogrulanmamis Kod Teslim Etmez

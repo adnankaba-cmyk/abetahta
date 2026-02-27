@@ -1,34 +1,20 @@
 {
   "permissions": {
     "allow": [
-      "Bash(*)",
-      "Read",
-      "Edit",
-      "Write",
-      "Grep",
-      "Glob",
-      "Task",
-      "WebFetch",
-      "WebSearch"
+      "*"
     ],
     "deny": [
       "Bash(rm -rf /)",
       "Bash(rm -rf ~)",
-      "Bash(rm -rf C:\\*)",
-      "Bash(rm -rf D:\\*)",
       "Bash(*DROP DATABASE*)",
-      "Bash(*DROP TABLE*)",
-      "Bash(del /s /q C:*)",
-      "Bash(format *)",
-      "Bash(git push --force origin main*)",
-      "Bash(git push --force origin master*)"
+      "Bash(format *)"
     ]
   },
   "model": "claude-sonnet-4-6",
   "planModel": "claude-opus-4-6",
-  "thinkingBudget": 10000,
+  "thinkingBudget": 32000,
   "compaction": {
-    "threshold": 85
+    "threshold": 90
   },
   "preferences": {
     "language": "tr",
