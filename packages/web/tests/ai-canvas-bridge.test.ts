@@ -107,6 +107,7 @@ describe('processAIResponse', () => {
   it('mermaid blok yoksa bridgeResult null dondurur', async () => {
     const mockEditor = {
       getViewportPageBounds: vi.fn().mockReturnValue({ midX: 400, midY: 300 }),
+      getCurrentPageShapes: vi.fn().mockReturnValue([]),
       createAssets: vi.fn(),
       createShape: vi.fn(),
       select: vi.fn(),

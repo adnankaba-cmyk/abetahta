@@ -1,5 +1,14 @@
 ﻿# abeTahta - Changelog
 ---
+## [2026-02-27] Maksimum Ajan Ayarlari (afd9c95)
+- FEAT: gelistirici.md + hata-ayiklayici.md — sonnet → opus modele yukseltildi
+- FEAT: settings.json — thinkingBudget 10000 → 32000, planModel: claude-opus-4-6 eklendi
+- FEAT: settings.json — Bash izin listesi "*" wildcard'a donusturuldu
+- FEAT: settings.local.json — tum MCP araclari (playwright, pinecone, context7 vb.) acildi
+- FEAT: global settings — effortLevel medium → high
+- FEAT: 18 ajan — Task+WebSearch+WebFetch araclari eklendi
+- FIX:  Python wrapper — ~/bin/ altinda python/python3/pip/pip3 → Python313
+
 ## [2026-02-27] Ajan Sistemi Optimizasyonu (99aae21)
 - FEAT: settings.json — git commit/push/pull/checkout/merge/stash izinleri eklendi
 - FEAT: settings.json — npx vitest/tsx/prettier, curl/psql/redis-cli/pg_isready eklendi

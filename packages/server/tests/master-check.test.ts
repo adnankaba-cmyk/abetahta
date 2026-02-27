@@ -25,6 +25,8 @@ vi.mock('../src/lib/logger.js', () => {
     socketLogger: ml(),
     wsLogger: ml(),
     dbLogger: ml(),
+    redisLogger: ml(),
+    aiLogger: ml(),
   };
 });
 
@@ -164,6 +166,17 @@ describe('ISLEV 4: requireAdmin middleware', () => {
 });
 
 describe('ISLEV 5: requireBoardAccess middleware — auth kontrolu', () => {
+  const origSingleUser = process.env.SINGLE_USER_MODE;
+
+  beforeEach(() => { process.env.SINGLE_USER_MODE = 'false'; });
+  afterEach(() => {
+    if (origSingleUser === undefined) {
+      delete process.env.SINGLE_USER_MODE;
+    } else {
+      process.env.SINGLE_USER_MODE = origSingleUser;
+    }
+  });
+
   it('userId yok → 401', () => {
     const { req, res, next } = mockReqRes({ params: { id: 'board-123' } });
     req.user = undefined;

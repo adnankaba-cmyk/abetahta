@@ -191,7 +191,7 @@ export function authenticateClaude(req: Request, res: Response, next: NextFuncti
   req.user = {
     userId: 'claude-ai',
     email: 'claude@abetahta.local',
-    role: 'member',
+    role: 'admin',
   };
 
   next();

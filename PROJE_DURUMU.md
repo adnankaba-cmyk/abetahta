@@ -1,6 +1,6 @@
 # abeTahta — PROJE DURUMU
 
-> **Son Guncelleme:** 2026-02-27 (shape sync onaylandi, logout bug duzeltildi)
+> **Son Guncelleme:** 2026-02-27 (18 ajan guncellendi, ESLint temizlendi, Python wrapper, schema 16 tablo)
 > **Guncelleme Protokolu:** Bu dosya her oturum basinda okunur. Her onemli degisiklikten sonra guncellenir.
 
 ---
