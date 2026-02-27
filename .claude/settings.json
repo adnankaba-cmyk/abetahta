@@ -1,0 +1,56 @@
+﻿{
+    "permissions":  {
+                        "allow":  [
+                                      "Bash(npm run *)",
+                                      "Bash(npx tsc *)",
+                                      "Bash(npx jest *)",
+                                      "Bash(npx eslint *)",
+                                      "Bash(node *)",
+                                      "Bash(git status*)",
+                                      "Bash(git diff*)",
+                                      "Bash(git log*)",
+                                      "Bash(git add*)",
+                                      "Bash(git branch*)",
+                                      "Bash(docker ps*)",
+                                      "Bash(docker compose up*)",
+                                      "Bash(docker compose down*)",
+                                      "Bash(docker exec*)",
+                                      "Bash(cat *)",
+                                      "Bash(ls *)",
+                                      "Bash(find *)",
+                                      "Bash(grep *)",
+                                      "Bash(head *)",
+                                      "Bash(tail *)",
+                                      "Bash(wc *)",
+                                      "Bash(mkdir *)",
+                                      "Bash(cp *)",
+                                      "Bash(mv *)",
+                                      "Read",
+                                      "Edit",
+                                      "Write",
+                                      "Grep",
+                                      "Glob"
+                                  ],
+                        "deny":  [
+                                     "Bash(rm -rf /)",
+                                     "Bash(rm -rf ~)",
+                                     "Bash(rm -rf C:*)",
+                                     "Bash(rm -rf D:*)",
+                                     "Bash(*DROP DATABASE*)",
+                                     "Bash(*DROP TABLE*)",
+                                     "Bash(*TRUNCATE*)",
+                                     "Bash(del /s /q *)",
+                                     "Bash(format *)"
+                                 ]
+                    },
+    "model":  "claude-sonnet-4-6",
+    "planModel":  "claude-opus-4-6",
+    "thinkingBudget":  10000,
+    "compaction":  {
+                       "threshold":  85
+                   },
+    "preferences":  {
+                        "language":  "tr",
+                        "autoCompact":  true
+                    }
+}

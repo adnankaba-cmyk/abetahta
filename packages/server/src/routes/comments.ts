@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../models/db.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, requireBoardAccess, isSingleUserMode } from '../middleware/auth.js';
 import { asyncHandler, AppError } from '../middleware/errorHandler.js';
 
 export const commentRoutes = Router();
@@ -10,6 +10,7 @@ commentRoutes.use(authenticate);
 // Bir element'in tüm yorumlarını getir
 commentRoutes.get(
   '/element/:elementId',
+  requireBoardAccess,
   asyncHandler(async (req: Request, res: Response) => {
     const { elementId } = req.params;
 
@@ -32,7 +33,7 @@ commentRoutes.post(
   '/',
   asyncHandler(async (req: Request, res: Response) => {
     const { element_id, body, parent_id } = req.body;
-    const userId = (req as any).user?.id;
+    const userId = req.user?.userId;
 
     if (!element_id || !body) {
       throw new AppError('element_id ve body zorunlu', 400);
@@ -42,6 +43,19 @@ commentRoutes.post(
     const element = await db.query('SELECT id, board_id FROM elements WHERE id = $1', [element_id]);
     if (element.rows.length === 0) {
       throw new AppError('Element bulunamadi', 404);
+    }
+
+    // Board erisim kontrolu — tek kullanici modunda atla
+    if (!isSingleUserMode()) {
+      const access = await db.query(
+        `SELECT 1 FROM boards b
+         JOIN project_members pm ON pm.project_id = b.project_id AND pm.user_id = $2
+         WHERE b.id = $1`,
+        [element.rows[0].board_id, userId]
+      );
+      if (access.rows.length === 0) {
+        throw new AppError('Bu board\'a erisim yetkiniz yok', 403);
+      }
     }
 
     const result = await db.query(
@@ -68,7 +82,7 @@ commentRoutes.put(
   asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const { body } = req.body;
-    const userId = (req as any).user?.id;
+    const userId = req.user?.userId;
 
     if (!body) {
       throw new AppError('body zorunlu', 400);
@@ -95,7 +109,7 @@ commentRoutes.delete(
   '/:id',
   asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
-    const userId = (req as any).user?.id;
+    const userId = req.user?.userId;
 
     const result = await db.query(
       'DELETE FROM comments WHERE id = $1 AND user_id = $2 RETURNING id',

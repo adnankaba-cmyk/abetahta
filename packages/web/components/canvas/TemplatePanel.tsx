@@ -33,7 +33,75 @@ interface Template {
   shapes: TemplateShape[];
 }
 
-const TEMPLATES: Template[] = [
+// Export: AI intent router'dan erişim için
+export { type Template, type TemplateShape };
+
+/**
+ * Template ID ile şablonu bul ve editor'a uygula.
+ * AIPanel intent router'dan çağrılır — API kullanmadan yerel şablon.
+ */
+export function applyTemplateById(editor: Editor, templateId: string): { applied: boolean; shapeCount: number; name: string } {
+  const template = TEMPLATES.find(t => t.id === templateId);
+  if (!template) return { applied: false, shapeCount: 0, name: '' };
+
+  const now = new Date().toISOString();
+  const viewportBounds = editor.getViewportScreenBounds();
+  const camera = editor.getCamera();
+  const centerX = (-camera.x + viewportBounds.w / 2 / camera.z);
+  const centerY = (-camera.y + viewportBounds.h / 2 / camera.z);
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  template.shapes.forEach(s => {
+    minX = Math.min(minX, s.x);
+    minY = Math.min(minY, s.y);
+    maxX = Math.max(maxX, s.x + (s.w || 100));
+    maxY = Math.max(maxY, s.y + (s.h || 100));
+  });
+  const baseX = centerX - (maxX - minX) / 2 - minX;
+  const baseY = centerY - (maxY - minY) / 2 - minY;
+
+  let count = 0;
+  for (const shape of template.shapes) {
+    const id = createShapeId();
+    if (shape.type === 'geo') {
+      editor.createShape({
+        id, type: 'geo',
+        x: baseX + shape.x, y: baseY + shape.y,
+        props: {
+          geo: shape.geo || 'rectangle', w: shape.w || 100, h: shape.h || 60,
+          fill: 'solid', color: shape.color || 'black', dash: 'draw', size: 'm',
+          richText: shape.text ? toRichText(shape.text) : undefined,
+        } as any,
+        meta: { createdAt: now, template: template.id },
+      });
+      count++;
+    } else if (shape.type === 'note') {
+      editor.createShape({
+        id, type: 'note',
+        x: baseX + shape.x, y: baseY + shape.y,
+        props: { color: shape.color || 'yellow', size: 'm', richText: shape.text ? toRichText(shape.text) : toRichText('') } as any,
+        meta: { createdAt: now, template: template.id },
+      });
+      count++;
+    } else if (shape.type === 'arrow') {
+      editor.createShape({
+        id, type: 'arrow',
+        x: baseX + shape.x, y: baseY + shape.y,
+        props: {
+          start: { x: 0, y: 0 },
+          end: { x: (shape.endX || shape.x + 50) - shape.x, y: (shape.endY || shape.y + 50) - shape.y },
+          color: shape.color || 'black', arrowheadEnd: 'arrow', arrowheadStart: 'none',
+        } as any,
+        meta: { createdAt: now, template: template.id },
+      });
+      count++;
+    }
+  }
+
+  return { applied: true, shapeCount: count, name: template.name };
+}
+
+export const TEMPLATES: Template[] = [
   {
     id: 'flowchart-basic',
     name: 'Temel Akis Diyagrami',
@@ -212,12 +280,10 @@ export function TemplatePanel({ editor, isVisible, onClose, userId, userName }: 
     const baseX = centerX - templateW / 2 - minX;
     const baseY = centerY - templateH / 2 - minY;
 
-    template.shapes.forEach((shape, idx) => {
-      const id = createShapeId();
-
-      setTimeout(() => {
+    // Tüm şekilleri doğrudan oluştur — setTimeout yok (memory leak riski)
+    template.shapes.forEach((shape) => {
+        const id = createShapeId();
         if (shape.type === 'geo') {
-          // Geo shapes with richText for text content
           editor.createShape({
             id,
             type: 'geo',
@@ -233,12 +299,7 @@ export function TemplatePanel({ editor, isVisible, onClose, userId, userName }: 
               size: 'm',
               richText: shape.text ? toRichText(shape.text) : undefined,
             } as any,
-            meta: {
-              createdAt: now,
-              createdBy: userId,
-              createdByName: userName,
-              template: template.id,
-            },
+            meta: { createdAt: now, createdBy: userId, createdByName: userName, template: template.id },
           });
         } else if (shape.type === 'note') {
           editor.createShape({
@@ -251,12 +312,7 @@ export function TemplatePanel({ editor, isVisible, onClose, userId, userName }: 
               size: 'm',
               richText: shape.text ? toRichText(shape.text) : toRichText(''),
             } as any,
-            meta: {
-              createdAt: now,
-              createdBy: userId,
-              createdByName: userName,
-              template: template.id,
-            },
+            meta: { createdAt: now, createdBy: userId, createdByName: userName, template: template.id },
           });
         } else if (shape.type === 'arrow') {
           editor.createShape({
@@ -271,16 +327,10 @@ export function TemplatePanel({ editor, isVisible, onClose, userId, userName }: 
               arrowheadEnd: 'arrow',
               arrowheadStart: 'none',
             } as any,
-            meta: {
-              createdAt: now,
-              createdBy: userId,
-              createdByName: userName,
-              template: template.id,
-            },
+            meta: { createdAt: now, createdBy: userId, createdByName: userName, template: template.id },
           });
         }
-      }, idx * 50);
-    });
+      });
 
     onClose();
   };

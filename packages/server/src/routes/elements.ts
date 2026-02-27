@@ -87,7 +87,7 @@ elementRoutes.put(
 
     // Dinamik güncelleme
     const fields: string[] = [];
-    const values: any[] = [];
+    const values: unknown[] = [];
     let paramIdx = 1;
 
     const allowedFields = [
@@ -111,27 +111,29 @@ elementRoutes.put(
     }
 
     values.push(req.params.id);
-    const result = await db.query(
-      `UPDATE elements SET ${fields.join(', ')} WHERE id = $${paramIdx} RETURNING *`,
-      values
-    );
 
-    // History kaydı
-    await db.query(
-      `INSERT INTO history (board_id, element_id, user_id, action, before_state, after_state)
-       VALUES ($1, $2, $3, 'update', $4, $5)`,
-      [
-        current.board_id,
-        req.params.id,
-        req.user!.userId,
-        JSON.stringify(current),
-        JSON.stringify(result.rows[0]),
-      ]
-    );
+    const updatedElement = await db.transaction(async (client) => {
+      const result = await client.query(
+        `UPDATE elements SET ${fields.join(', ')} WHERE id = $${paramIdx} RETURNING *`,
+        values
+      );
+      await client.query(
+        `INSERT INTO history (board_id, element_id, user_id, action, before_state, after_state)
+         VALUES ($1, $2, $3, 'update', $4, $5)`,
+        [
+          current.board_id,
+          req.params.id,
+          req.user!.userId,
+          JSON.stringify(current),
+          JSON.stringify(result.rows[0]),
+        ]
+      );
+      return result.rows[0];
+    });
 
     await cache.invalidateBoard(current.board_id);
 
-    res.json({ element: result.rows[0] });
+    res.json({ element: updatedElement });
   })
 );
 
@@ -154,14 +156,15 @@ elementRoutes.delete(
 
     const current = existing.rows[0];
 
-    // History kaydı
-    await db.query(
-      `INSERT INTO history (board_id, element_id, user_id, action, before_state)
-       VALUES ($1, $2, $3, 'delete', $4)`,
-      [current.board_id, req.params.id, req.user!.userId, JSON.stringify(current)]
-    );
+    await db.transaction(async (client) => {
+      await client.query(
+        `INSERT INTO history (board_id, element_id, user_id, action, before_state)
+         VALUES ($1, $2, $3, 'delete', $4)`,
+        [current.board_id, req.params.id, req.user!.userId, JSON.stringify(current)]
+      );
+      await client.query('DELETE FROM elements WHERE id = $1', [req.params.id]);
+    });
 
-    await db.query('DELETE FROM elements WHERE id = $1', [req.params.id]);
     await cache.invalidateBoard(current.board_id);
 
     res.json({ message: 'Eleman silindi' });
@@ -176,6 +179,24 @@ elementRoutes.post(
 
     if (!Array.isArray(elements) || elements.length === 0) {
       throw new AppError('elements dizisi boş', 400);
+    }
+
+    // Her elemanın board_id'sini topla ve üyelik kontrolü yap
+    const boardIds = [...new Set(elements.map((el: { board_id: string }) => el.board_id).filter(Boolean))];
+    if (boardIds.length === 0) {
+      throw new AppError('Her eleman için board_id zorunlu', 400);
+    }
+
+    for (const bid of boardIds) {
+      const member = await db.query(
+        `SELECT 1 FROM boards b
+         JOIN project_members pm ON pm.project_id = b.project_id AND pm.user_id = $2
+         WHERE b.id = $1`,
+        [bid, req.user!.userId]
+      );
+      if (member.rows.length === 0) {
+        throw new AppError(`Tahta ${bid} için yetkiniz yok`, 403);
+      }
     }
 
     const results = await db.transaction(async (client) => {
@@ -203,7 +224,18 @@ elementRoutes.get(
   '/history/:boardId',
   asyncHandler(async (req: Request, res: Response) => {
     const { boardId } = req.params;
-    const limit = parseInt(req.query.limit as string) || 50;
+    const limit = Math.min(parseInt(req.query.limit as string) || 50, 200);
+
+    // Üyelik kontrolü
+    const member = await db.query(
+      `SELECT 1 FROM boards b
+       JOIN project_members pm ON pm.project_id = b.project_id AND pm.user_id = $2
+       WHERE b.id = $1`,
+      [boardId, req.user!.userId]
+    );
+    if (member.rows.length === 0) {
+      throw new AppError('Tahta bulunamadı veya yetkiniz yok', 403);
+    }
 
     const result = await db.query(
       `SELECT h.*, u.display_name as user_name

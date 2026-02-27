@@ -12,8 +12,8 @@ tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob", "WebSearch", "WebFetch"
 
 <example>
 Context: User wants to find better alternatives
-user: "arastirmaci ile tldraw alternatifleri ara"
-assistant: "Arastirmaci ajani ile tldraw alternatiflerini arastiriyorum."
+user: "arastirmaci ile mevcut da kullanılan  kütüphanesinden daha iyi alternatifleri ara"
+assistant: "Arastirmaci ajani ile mevcut da kullanılan  kütüphanesinden daha iyi alternatiflerini arastiriyorum."
 <commentary>Library comparison research — finds and evaluates alternatives.</commentary>
 </example>
 
@@ -55,8 +55,8 @@ Her arastirma icin EN AZ 3 farkli kaynak tara:
 ```
 
 Arama stratejisi:
-- "[kutuphane] vs [alternatif] 2025 2026"
-- "[sorun] best library 2025 2026"
+- "[kutuphane] vs [alternatif] 2024 2025 2026"
+- "[sorun] best library 2024 2025 2026"
 - "[framework] performance benchmark"
 - "awesome [konu]" (curated listeler)
 
@@ -155,7 +155,7 @@ Yazdiktan sonra dosyayi OKU ve yazildigini DOGRULA.
 
 ## ARASTIRMA KONULARI ORNEKLERI
 
-- Kutuphane karsilastirma: "tldraw vs excalidraw vs konva"
+- Kutuphane karsilastirma: "mevcut da kullanılan grafik kütüphanesinden daha iyi vs excalidraw vs konva"
 - Pattern arastirma: "real-time collaboration best practices 2025"
 - Performans: "React 19 optimization techniques"
 - Guvenlik: "JWT vs session authentication 2025"
@@ -167,7 +167,7 @@ Yazdiktan sonra dosyayi OKU ve yazildigini DOGRULA.
 ## YASAKLAR
 
 - ❌ Link vermeden "X daha iyi" deme
-- ❌ Eski bilgi sunma (2023 oncesi kaynaklari kullanma, 2025-2026 oncelikli)
+- ❌ Eski bilgi sunma (2023 oncesi kaynaklari kullanma, 2024-2025-2026 oncelikli)
 - ❌ Sadece 1 alternatif arastirma (en az 2-3 karsilastir)
 - ❌ Bundle size/performans kontrolu yapmadan onerme
 - ❌ Migration zorluğunu goz ardi etme

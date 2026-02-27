@@ -42,8 +42,8 @@ Bu komut 3 sunucuyu aynı anda başlatır:
 ```
 D:\AbeTahta\
 ├── docs/                      # Belgeler
-│   ├── 01-MIMARI-TASARIM.md   # Mimari belge
 │   └── database-schema.sql    # PostgreSQL şeması
+├── gereksiz/                  # Arşivlenmiş eski dokümanlar
 ├── packages/
 │   ├── web/                   # Next.js 15 Frontend
 │   │   ├── app/               # App Router sayfaları
@@ -56,7 +56,7 @@ D:\AbeTahta\
 │       ├── src/middleware/     # Auth, error handling
 │       ├── src/models/        # DB, Redis bağlantıları
 │       ├── src/ws/            # Yjs WebSocket sunucu
-│       └── src/claude/        # Claude entegrasyonu
+│       └── src/lib/           # Logger, notify
 ├── docker-compose.yml         # PostgreSQL + Redis
 ├── .env.example               # Ortam değişkenleri
 └── package.json               # Monorepo root

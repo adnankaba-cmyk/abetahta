@@ -1,3 +1,5 @@
+'use client';
+
 import { create } from 'zustand';
 import { api } from '@/lib/api';
 import { log } from '@/lib/logger';
@@ -91,12 +93,18 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   deleteNotification: async (id) => {
     try {
       await api.del(`/api/notifications/${id}`);
-      set((s) => ({
-        notifications: s.notifications.filter((n) => n.id !== id),
-        unreadCount: s.notifications.find((n) => n.id === id && !n.is_read)
-          ? s.unreadCount - 1
-          : s.unreadCount,
-      }));
+      set((s) => {
+        const deleted = s.notifications.find((n) => n.id === id);
+        // unreadCount'u sunucudan değil local listeden düşür
+        // Pagination nedeniyle sunucudaki gerçek sayıdan sapabilir — en az 0 garantisi
+        const newUnread = deleted && !deleted.is_read
+          ? Math.max(0, s.unreadCount - 1)
+          : s.unreadCount;
+        return {
+          notifications: s.notifications.filter((n) => n.id !== id),
+          unreadCount: newUnread,
+        };
+      });
     } catch (err) {
       log.error('[notifications] deleteNotification hatasi:', err);
     }

@@ -1,0 +1,1 @@
+﻿kalite-gardiyan ajanini cagir. Son degisikligi dogrula: git diff, tsc, lint, build, test calistir. Changelog guncel mi kontrol et.

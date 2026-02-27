@@ -20,9 +20,14 @@
  *   ZINDEX  id front|back|forward|backward — Z-sıralama
  */
 
-import { Editor, TLShape, TLShapeId, createShapeId } from 'tldraw';
+import { Editor, TLShape, TLShapeId } from 'tldraw';
 import { applyMermaidToCanvas } from './ai-canvas-bridge';
+import { buildSpatialMap, serializeSpatialForAI, type BoardSpatialMap } from './board-spatial';
 import { agentLog } from './logger';
+
+// ---- Context Strategy ----
+
+export type ContextStrategy = 'none' | 'summary' | 'selected' | 'viewport' | 'full' | 'spatial';
 
 // ---- Canvas State Serializer ----
 
@@ -37,6 +42,16 @@ export interface CanvasShapeInfo {
   color?: string;
   geo?: string;
   meta?: Record<string, unknown>;
+}
+
+export interface SmartCanvasContext {
+  shapeCount: number;
+  selectedIds: string[];
+  viewport: { x: number; y: number; w: number; h: number };
+  shapes?: CanvasShapeInfo[];
+  summary?: { byType: Record<string, number>; totalText: number };
+  spatialText?: string;
+  spatialMap?: BoardSpatialMap;
 }
 
 /**
@@ -60,20 +75,7 @@ export function serializeCanvasState(editor: Editor): {
     y: viewportBounds.y + viewportBounds.h,
   });
 
-  const shapes: CanvasShapeInfo[] = allShapes.slice(0, 100).map((s) => {
-    const props = s.props as Record<string, any>;
-    return {
-      id: s.id,
-      type: s.type,
-      x: Math.round(s.x),
-      y: Math.round(s.y),
-      w: props.w ? Math.round(props.w) : undefined,
-      h: props.h ? Math.round(props.h) : undefined,
-      text: props.text || props.richText?.[0]?.children?.[0]?.text || undefined,
-      color: props.color || undefined,
-      geo: props.geo || undefined,
-    };
-  });
+  const shapes: CanvasShapeInfo[] = allShapes.slice(0, 100).map(mapShapeInfo);
 
   const result = {
     shapeCount: allShapes.length,
@@ -88,6 +90,134 @@ export function serializeCanvasState(editor: Editor): {
   };
   agentLog.info('Canvas durumu serileştirildi:', { shapeCount: result.shapeCount, selectedCount: selectedIds.length });
   return result;
+}
+
+// ---- Shape mapper helper ----
+
+/** ProseMirror richText doc'tan plain text cikarir */
+function extractPlainText(richText: unknown): string | undefined {
+  if (!richText || typeof richText !== 'object') return undefined;
+  const doc = richText as { type?: string; content?: Array<{ content?: Array<{ text?: string }> }> };
+  if (doc.type !== 'doc' || !doc.content) return undefined;
+  const texts: string[] = [];
+  for (const para of doc.content) {
+    if (para.content) {
+      for (const node of para.content) {
+        if (node.text) texts.push(node.text);
+      }
+    }
+  }
+  return texts.length > 0 ? texts.join(' ') : undefined;
+}
+
+function mapShapeInfo(s: TLShape): CanvasShapeInfo {
+  const props = s.props as Record<string, any>;
+  const meta = (s.meta || {}) as Record<string, any>;
+  const text = typeof props.text === 'string'
+    ? props.text
+    : extractPlainText(props.richText) || extractPlainText(props.text);
+  const info: CanvasShapeInfo = {
+    id: s.id,
+    type: s.type,
+    x: Math.round(s.x),
+    y: Math.round(s.y),
+    w: props.w ? Math.round(props.w) : undefined,
+    h: props.h ? Math.round(props.h) : undefined,
+    text: text || undefined,
+    color: props.color || undefined,
+    geo: props.geo || undefined,
+  };
+  if (meta.createdBy === 'drawio') {
+    info.meta = { source: 'drawio', label: meta.drawioLabel, texts: meta.drawioTexts };
+  }
+  return info;
+}
+
+function getViewport(editor: Editor) {
+  const vb = editor.getViewportScreenBounds();
+  const tl = editor.screenToPage({ x: vb.x, y: vb.y });
+  const br = editor.screenToPage({ x: vb.x + vb.w, y: vb.y + vb.h });
+  return {
+    x: Math.round(tl.x), y: Math.round(tl.y),
+    w: Math.round(br.x - tl.x), h: Math.round(br.y - tl.y),
+  };
+}
+
+/**
+ * Akıllı canvas context — intent'e göre minimum veri gönderir.
+ */
+export function serializeSmartContext(editor: Editor, strategy: ContextStrategy): SmartCanvasContext {
+  agentLog.debug('serializeSmartContext:', strategy);
+  const allShapes = editor.getCurrentPageShapes();
+  const selectedIds = editor.getSelectedShapeIds() as string[];
+  const viewport = getViewport(editor);
+
+  const base: SmartCanvasContext = { shapeCount: allShapes.length, selectedIds, viewport };
+
+  switch (strategy) {
+    case 'none':
+      return base;
+
+    case 'summary': {
+      const byType: Record<string, number> = {};
+      let totalText = 0;
+      for (const s of allShapes) {
+        byType[s.type] = (byType[s.type] || 0) + 1;
+        if ((s.props as any).text) totalText++;
+      }
+      return { ...base, summary: { byType, totalText } };
+    }
+
+    case 'selected': {
+      const selected = editor.getSelectedShapes();
+      if (selected.length === 0) {
+        // Secili yoksa summary dondur
+        const byType: Record<string, number> = {};
+        for (const s of allShapes) byType[s.type] = (byType[s.type] || 0) + 1;
+        return { ...base, summary: { byType, totalText: 0 } };
+      }
+      // Secili + en yakin 10 komsu
+      const selSet = new Set(selected.map(s => s.id));
+      const selCenterX = selected.reduce((sum, s) => sum + s.x, 0) / selected.length;
+      const selCenterY = selected.reduce((sum, s) => sum + s.y, 0) / selected.length;
+      const nearby = allShapes
+        .filter(s => !selSet.has(s.id))
+        .map(s => ({ s, dist: Math.hypot(s.x - selCenterX, s.y - selCenterY) }))
+        .sort((a, b) => a.dist - b.dist)
+        .slice(0, 10)
+        .map(({ s }) => s);
+      return { ...base, shapes: [...selected, ...nearby].map(mapShapeInfo) };
+    }
+
+    case 'viewport': {
+      const vpBounds = editor.getViewportPageBounds();
+      const inView = allShapes.filter(s => {
+        const p = s.props as any;
+        const sw = p.w || 100, sh = p.h || 100;
+        return s.x + sw > vpBounds.x && s.x < vpBounds.x + vpBounds.w &&
+               s.y + sh > vpBounds.y && s.y < vpBounds.y + vpBounds.h;
+      });
+      return { ...base, shapes: inView.slice(0, 30).map(mapShapeInfo) };
+    }
+
+    case 'spatial': {
+      const spatialMap = buildSpatialMap(editor);
+      const spatialText = serializeSpatialForAI(spatialMap);
+      // Viewport'taki sekilleri de ekle (max 30) — AI bunlari referans alabilsin
+      const vpBounds = editor.getViewportPageBounds();
+      const inView = allShapes.filter(s => {
+        const p = s.props as any;
+        const sw = p.w || 100, sh = p.h || 100;
+        return s.x + sw > vpBounds.x && s.x < vpBounds.x + vpBounds.w &&
+               s.y + sh > vpBounds.y && s.y < vpBounds.y + vpBounds.h;
+      });
+      return { ...base, shapes: inView.slice(0, 30).map(mapShapeInfo), spatialText, spatialMap };
+    }
+
+    case 'full':
+    default:
+      return { ...base, shapes: allShapes.slice(0, 100).map(mapShapeInfo) };
+  }
 }
 
 // ---- Agent Action Parser & Executor ----

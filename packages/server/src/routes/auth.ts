@@ -2,17 +2,26 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import rateLimit from 'express-rate-limit';
 import { db } from '../models/db.js';
-import { generateTokens, verifyRefreshToken, authenticate, SINGLE_USER_MODE, SINGLE_USER_PAYLOAD } from '../middleware/auth.js';
+import { generateTokens, verifyRefreshToken, authenticate, isSingleUserMode, SINGLE_USER_PAYLOAD } from '../middleware/auth.js';
 import { asyncHandler, AppError } from '../middleware/errorHandler.js';
+import { redis } from '../models/redis.js';
 import { z } from 'zod';
 
 export const authRoutes = Router();
 
-// Kullanilmis refresh token'lari (rotation icin) — tek sunucu icin yeterli
-// Production'da Redis veya DB kullanilmali
-const usedRefreshTokens = new Set<string>();
-// Bellek tasma onlemi: 1 saatte bir temizle
-setInterval(() => { usedRefreshTokens.clear(); }, 60 * 60 * 1000);
+const REFRESH_TOKEN_TTL = 7 * 24 * 60 * 60; // 7 gün (saniye)
+
+async function markRefreshTokenUsed(token: string): Promise<void> {
+  // Token hash'ini key olarak kullan (token çok uzun olabilir)
+  const key = `rt:used:${Buffer.from(token).toString('base64').slice(0, 64)}`;
+  await redis.setex(key, REFRESH_TOKEN_TTL, '1');
+}
+
+async function isRefreshTokenUsed(token: string): Promise<boolean> {
+  const key = `rt:used:${Buffer.from(token).toString('base64').slice(0, 64)}`;
+  const val = await redis.get(key);
+  return val !== null;
+}
 
 // Brute force korumasi: login/register icin 5 deneme / 15dk
 const authLimiter = rateLimit({
@@ -25,14 +34,14 @@ const authLimiter = rateLimit({
 
 // ---- GET /api/auth/mode — Tek kullanıcı modu bilgisi ----
 authRoutes.get('/mode', (_req: Request, res: Response) => {
-  res.json({ singleUser: SINGLE_USER_MODE });
+  res.json({ singleUser: isSingleUserMode() });
 });
 
 // ---- POST /api/auth/auto-login — Tek kullanıcı otomatik giriş ----
 authRoutes.post(
   '/auto-login',
   asyncHandler(async (_req: Request, res: Response) => {
-    if (!SINGLE_USER_MODE) {
+    if (!isSingleUserMode()) {
       throw new AppError('Tek kullanıcı modu aktif değil', 403);
     }
 
@@ -78,7 +87,7 @@ authRoutes.post(
 // Validation şemaları
 const registerSchema = z.object({
   email: z.string().email('Geçerli email giriniz'),
-  password: z.string().min(6, 'Şifre en az 6 karakter olmalı'),
+  password: z.string().min(8, 'Şifre en az 8 karakter olmalı'),
   display_name: z.string().min(2, 'İsim en az 2 karakter olmalı').max(100),
 });
 
@@ -192,15 +201,15 @@ authRoutes.post(
       throw new AppError('Refresh token eksik', 400);
     }
 
-    // Token rotation: ayni refresh token tekrar kullanilamaz
-    if (usedRefreshTokens.has(refreshToken)) {
+    // Token rotation: ayni refresh token tekrar kullanilamaz (Redis blacklist)
+    if (await isRefreshTokenUsed(refreshToken)) {
       throw new AppError('Refresh token zaten kullanildi (replay attack?)', 401);
     }
 
     const payload = verifyRefreshToken(refreshToken);
 
-    // Eski token'i blacklist'e ekle
-    usedRefreshTokens.add(refreshToken);
+    // Eski token'i Redis blacklist'e ekle
+    await markRefreshTokenUsed(refreshToken);
 
     const tokens = generateTokens({
       userId: payload.userId,

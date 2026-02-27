@@ -156,7 +156,7 @@ export default function DashboardPage() {
                       toast.warning('Bu proje icinde tahta bulunamadi');
                     }
                   } catch (err) {
-                    toast.error('Tahta yuklenemedi: ' + (err as any).message);
+                    toast.error('Tahta yuklenemedi: ' + (err instanceof Error ? err.message : String(err)));
                   }
                 }}
                 className="bg-white rounded-xl border border-gray-200 p-5 cursor-pointer hover:shadow-md hover:border-blue-300 transition-all"

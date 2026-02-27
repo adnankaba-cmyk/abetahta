@@ -1,13 +1,36 @@
 import { Router, Request, Response } from 'express';
 import Anthropic from '@anthropic-ai/sdk';
 import rateLimit from 'express-rate-limit';
+import { z } from 'zod';
 import { db } from '../models/db.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, requireBoardAccess } from '../middleware/auth.js';
 import { asyncHandler, AppError } from '../middleware/errorHandler.js';
 import { aiLogger } from '../lib/logger.js';
 
+// boardState validasyon şeması — prompt injection koruması
+const boardStateSchema = z.object({
+  shapes: z.array(z.object({
+    id: z.string().max(100),
+    type: z.string().max(50),
+    x: z.number().optional(),
+    y: z.number().optional(),
+    w: z.number().optional(),
+    h: z.number().optional(),
+    props: z.record(z.unknown()).optional(),
+    meta: z.object({
+      label: z.string().max(500).optional(),
+      texts: z.array(z.string().max(500)).optional(),
+    }).optional(),
+  })).max(500),
+}).optional();
+
 export const aiRoutes = Router();
 aiRoutes.use(authenticate);
+
+// Singleton — her istekte yeniden oluşturmak yerine modül seviyesinde tut
+const anthropicClient = process.env.CLAUDE_API_KEY
+  ? new Anthropic({ apiKey: process.env.CLAUDE_API_KEY })
+  : null;
 
 // AI API pahali — kullanici basina 20 istek / dakika
 const aiLimiter = rateLimit({
@@ -248,13 +271,21 @@ function buildBoardContext(boardState: BoardState): string {
 aiRoutes.post(
   '/chat',
   aiLimiter,
+  requireBoardAccess,
   asyncHandler(async (req: Request, res: Response) => {
-    const { message, boardId, boardState, spatialText, intent: rawIntent } = req.body;
+    const { message, boardId, spatialText, intent: rawIntent } = req.body;
     const intent: AIIntent | null = isValidIntent(rawIntent) ? rawIntent : null;
+
+    // boardState validasyonu — prompt injection koruması
+    const boardStateParsed = boardStateSchema.safeParse({ shapes: req.body.boardState?.shapes });
+    const boardState = boardStateParsed.success ? req.body.boardState : null;
+    if (!boardStateParsed.success) {
+      aiLogger.warn({ error: boardStateParsed.error.message }, 'boardState validasyon hatasi — ignore');
+    }
 
     aiLogger.info({ boardId, intent, messageLength: message?.length }, 'AI chat istegi alindi');
 
-    if (!message) {
+    if (!message || typeof message !== 'string') {
       throw new AppError('message zorunlu', 400);
     }
 
@@ -305,7 +336,7 @@ aiRoutes.post(
     // Dinamik prompt seç
     const systemPrompt = intent ? buildSystemPrompt(intent) : SYSTEM_PROMPT_FULL;
 
-    const client = new Anthropic({ apiKey });
+    const client = anthropicClient ?? new Anthropic({ apiKey });
     const model = process.env.CLAUDE_MODEL || 'claude-sonnet-4-6-20250514';
 
     aiLogger.info({ model, intent: intent || 'full', promptSize: systemPrompt.length }, 'Claude API cagriliyor');

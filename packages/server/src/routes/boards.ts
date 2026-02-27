@@ -4,6 +4,7 @@ import { authenticate } from '../middleware/auth.js';
 import { asyncHandler, AppError } from '../middleware/errorHandler.js';
 import { applyUUIDValidation } from '../middleware/validateUUID.js';
 import { httpLogger } from '../lib/logger.js';
+import { cache } from '../models/redis.js';
 
 export const boardRoutes = Router();
 boardRoutes.use(authenticate);
@@ -178,6 +179,7 @@ boardRoutes.delete(
       throw new AppError('Tahta bulunamadı veya silme yetkiniz yok', 404);
     }
 
+    await cache.invalidateBoard(req.params.id as string);
     res.json({ message: 'Tahta silindi' });
   })
 );

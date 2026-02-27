@@ -1,3 +1,5 @@
+'use client';
+
 import { create } from 'zustand';
 import { api } from '@/lib/api';
 import { disconnectSocket } from '@/lib/socket';
@@ -34,7 +36,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
-  accessToken: typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null,
+  accessToken: null, // XSS riski: localStorage'dan okuma kaldırıldı, httpOnly cookie + memory kullanılıyor
   isLoading: false,
   error: null,
   singleUserMode: false,
@@ -53,8 +55,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await api.post<AuthResponse>('/api/auth/auto-login');
-      localStorage.setItem('accessToken', data.accessToken);
+      // accessToken sadece memory'de — localStorage XSS riski var
       localStorage.setItem('refreshToken', data.refreshToken);
+      api.setToken(data.accessToken);
       set({ user: data.user, accessToken: data.accessToken, isLoading: false, singleUserMode: true });
       return true;
     } catch (err) {
@@ -67,8 +70,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await api.post<AuthResponse>('/api/auth/login', { email, password });
-      localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
+      api.setToken(data.accessToken);
       set({ user: data.user, accessToken: data.accessToken, isLoading: false });
       return true;
     } catch (err) {
@@ -85,8 +88,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         password,
         display_name: name,
       });
-      localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
+      api.setToken(data.accessToken);
       set({ user: data.user, accessToken: data.accessToken, isLoading: false });
       return true;
     } catch (err) {
@@ -97,8 +100,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: () => {
     disconnectSocket();
-    localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
+    api.setToken(null);
     set({ user: null, accessToken: null });
   },
 

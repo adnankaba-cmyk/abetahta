@@ -1,0 +1,1 @@
+﻿kod-inceleyici ajanini cagir. Son degisiklikleri 20 maddelik checklist ile incele. Puan ver, RED/GECTI karari ver.

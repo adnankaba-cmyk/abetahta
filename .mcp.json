@@ -1,0 +1,29 @@
+﻿{
+    "mcpServers":  {
+                       "postgres":  {
+                                        "command":  "npx",
+                                        "args":  [
+                                                     "-y",
+                                                     "@modelcontextprotocol/server-postgres"
+                                                 ],
+                                        "env":  {
+                                                    "POSTGRES_CONNECTION_STRING":  "postgresql://abetahta_user:abetahta_dev_2024@localhost:5432/abetahta_dev"
+                                                }
+                                    },
+                       "filesystem":  {
+                                          "command":  "npx",
+                                          "args":  [
+                                                       "-y",
+                                                       "@modelcontextprotocol/server-filesystem",
+                                                       "D:/AbeTahta"
+                                                   ]
+                                      },
+                       "memory":  {
+                                      "command":  "npx",
+                                      "args":  [
+                                                   "-y",
+                                                   "@modelcontextprotocol/server-memory"
+                                               ]
+                                  }
+                   }
+}

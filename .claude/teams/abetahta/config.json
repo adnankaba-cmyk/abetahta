@@ -1,0 +1,21 @@
+﻿{
+    "name":  "abetahta",
+    "description":  "abeTahta gelistirme takimi",
+    "teammates":  {
+                      "frontend":  {
+                                       "agent":  "frontend-uzman",
+                                       "model":  "claude-sonnet-4-6",
+                                       "workDir":  "packages/web"
+                                   },
+                      "backend":  {
+                                      "agent":  "api-tasarimci",
+                                      "model":  "claude-sonnet-4-6",
+                                      "workDir":  "packages/server"
+                                  },
+                      "database":  {
+                                       "agent":  "db-uzman",
+                                       "model":  "claude-sonnet-4-6",
+                                       "workDir":  "."
+                                   }
+                  }
+}

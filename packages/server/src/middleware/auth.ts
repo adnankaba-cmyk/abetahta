@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import jwt, { type SignOptions } from 'jsonwebtoken';
 import type { StringValue } from 'ms';
 import dotenv from 'dotenv';
+import { db } from '../models/db.js';
 
 dotenv.config({ path: '../../.env' });
 
@@ -102,6 +103,84 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction): v
   next();
 }
 
+/**
+ * Board erisim kontrolu — kullanicinin board'un projesinde uyesi olup olmadigini dogrular.
+ * boardId'yi su sirada arar: req.params.id → req.params.boardId → req.body.board_id → req.body.boardId
+ * Element-based erisim: req.params.elementId varsa, element'in board'una bakar.
+ */
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function requireBoardAccess(req: Request, res: Response, next: NextFunction): void {
+  // Tek kullanıcı modunda board erişim kontrolünü atla
+  if (isSingleUserMode()) {
+    next();
+    return;
+  }
+
+  const userId = req.user?.userId;
+  if (!userId) {
+    res.status(401).json({ error: 'Yetkilendirme gerekli' });
+    return;
+  }
+
+  // Board ID bul
+  const rawBoardId = req.params.id || req.params.boardId || req.body?.board_id || req.body?.boardId;
+  const boardId = rawBoardId;
+  const elementId = req.params.elementId;
+
+  // UUID formatı doğrula (elementId yoksa)
+  if (boardId && !elementId && !UUID_REGEX.test(boardId)) {
+    res.status(400).json({ error: 'Geçersiz board ID formatı' });
+    return;
+  }
+
+  if (!boardId && !elementId) {
+    // Ne boardId ne elementId var — bu middleware uygulanmamali, gecis ver
+    next();
+    return;
+  }
+
+  const checkAccess = async () => {
+    if (elementId && !boardId) {
+      // Element uzerinden board bul, sonra erisim kontrol et
+      const elResult = await db.query('SELECT board_id FROM elements WHERE id = $1', [elementId]);
+      if (elResult.rows.length === 0) {
+        res.status(404).json({ error: 'Element bulunamadi' });
+        return;
+      }
+      const elBoardId = elResult.rows[0].board_id;
+      const access = await db.query(
+        `SELECT 1 FROM boards b
+         JOIN project_members pm ON pm.project_id = b.project_id AND pm.user_id = $2
+         WHERE b.id = $1`,
+        [elBoardId, userId]
+      );
+      if (access.rows.length === 0) {
+        res.status(403).json({ error: 'Bu board\'a erisim yetkiniz yok' });
+        return;
+      }
+      next();
+    } else {
+      // Board ID ile dogrudan kontrol
+      const access = await db.query(
+        `SELECT 1 FROM boards b
+         JOIN project_members pm ON pm.project_id = b.project_id AND pm.user_id = $2
+         WHERE b.id = $1`,
+        [boardId, userId]
+      );
+      if (access.rows.length === 0) {
+        res.status(403).json({ error: 'Bu board\'a erisim yetkiniz yok' });
+        return;
+      }
+      next();
+    }
+  };
+
+  checkAccess().catch(() => {
+    res.status(500).json({ error: 'Erisim kontrolu sirasinda hata olustu' });
+  });
+}
+
 /** Claude API key doğrulama middleware'i */
 export function authenticateClaude(req: Request, res: Response, next: NextFunction): void {
   const apiKey = req.headers['x-claude-api-key'];
@@ -114,7 +193,7 @@ export function authenticateClaude(req: Request, res: Response, next: NextFuncti
   req.user = {
     userId: 'claude-ai',
     email: 'claude@abetahta.local',
-    role: 'admin',
+    role: 'member',
   };
 
   next();

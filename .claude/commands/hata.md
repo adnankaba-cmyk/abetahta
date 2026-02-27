@@ -1,0 +1,1 @@
+﻿hata-ayiklayici ajanini cagir. 5 Neden analizi yap. Duzelt, dogrula, regresyon testi yaz. errors.md ye kaydet.

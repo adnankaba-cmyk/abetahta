@@ -7,6 +7,14 @@ import { cache } from '../models/redis.js';
 export const claudeRoutes = Router();
 claudeRoutes.use(authenticateClaude);
 
+/** Board varlik kontrolu — Claude route'lari icin */
+async function ensureBoardExists(boardId: string): Promise<void> {
+  const result = await db.query('SELECT id FROM boards WHERE id = $1', [boardId]);
+  if (result.rows.length === 0) {
+    throw new AppError('Tahta bulunamadi', 404);
+  }
+}
+
 // ============================================
 // GET /api/claude/board/:id
 // Tam tahta verisi - Claude'un gördüğü veri
@@ -137,7 +145,8 @@ claudeRoutes.get(
 claudeRoutes.get(
   '/board/:id/flow',
   asyncHandler(async (req: Request, res: Response) => {
-    const boardId = req.params.id;
+    const boardId = req.params.id as string;
+    await ensureBoardExists(boardId);
 
     const nodes = await db.query(
       `SELECT id, content, x, y, status, assigned_to
@@ -208,8 +217,22 @@ claudeRoutes.put(
   asyncHandler(async (req: Request, res: Response) => {
     const updates = req.body;
 
+    // Element'in board'unu bul — erişim kontrolü için
+    const elementCheck = await db.query(
+      'SELECT board_id FROM elements WHERE id = $1',
+      [req.params.id]
+    );
+    if (elementCheck.rows.length === 0) {
+      throw new AppError('Eleman bulunamadı', 404);
+    }
+    // Board var mı kontrol et (basit varlık kontrolü — Claude route'u ayrı key ile korunuyor)
+    const boardCheck = await db.query('SELECT id FROM boards WHERE id = $1', [elementCheck.rows[0].board_id]);
+    if (boardCheck.rows.length === 0) {
+      throw new AppError('Board bulunamadı', 404);
+    }
+
     const fields: string[] = [];
-    const values: any[] = [];
+    const values: string[] = [];
     let idx = 1;
 
     const allowed = ['content', 'status', 'priority', 'assigned_to', 'tags', 'x', 'y', 'width', 'height'];
@@ -226,7 +249,7 @@ claudeRoutes.put(
       throw new AppError('Güncellenecek alan yok', 400);
     }
 
-    values.push(req.params.id);
+    values.push(req.params.id as string);
     const result = await db.query(
       `UPDATE elements SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`,
       values
@@ -249,6 +272,7 @@ claudeRoutes.post(
   '/board/:id/analyze',
   asyncHandler(async (req: Request, res: Response) => {
     const boardId = req.params.id as string;
+    await ensureBoardExists(boardId);
     const { analysis_type, findings, suggestions } = req.body;
 
     // Analiz sonucunu note olarak tahta'ya ekle
@@ -285,6 +309,12 @@ claudeRoutes.post(
 
     if (!element_id || !body) {
       throw new AppError('element_id ve body zorunlu', 400);
+    }
+
+    // Element varlik kontrolu
+    const elCheck = await db.query('SELECT id FROM elements WHERE id = $1', [element_id]);
+    if (elCheck.rows.length === 0) {
+      throw new AppError('Element bulunamadi', 404);
     }
 
     const result = await db.query(

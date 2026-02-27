@@ -1,15 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isLoading, error } = useAuthStore();
+  const { login, autoLogin, checkMode, singleUserMode, modeChecked, isLoading, error } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // Tek kullanici modunu kontrol et ve otomatik giris yap
+  useEffect(() => {
+    if (!modeChecked) {
+      checkMode();
+      return;
+    }
+    if (singleUserMode) {
+      autoLogin().then((success) => {
+        if (success) router.push('/dashboard');
+      });
+    }
+  }, [modeChecked, singleUserMode, autoLogin, checkMode, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,3 +1,5 @@
+'use client';
+
 import { create } from 'zustand';
 import type { Board, Element, Connection } from '@/types';
 import { api } from '@/lib/api';

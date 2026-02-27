@@ -22,7 +22,7 @@ function ensureInit() {
     securityLevel: 'strict',
     flowchart: {
       useMaxWidth: false,
-      htmlLabels: true,
+      htmlLabels: false, // strict securityLevel ile çelişiyor — kapalı
       curve: 'basis',
       padding: 15,
       nodeSpacing: 50,
@@ -139,4 +139,41 @@ export const MERMAID_EXAMPLES = {
   ERR --> LOAD
   OK --> IDLE
   ERR --> IDLE`,
+
+  erpSunum: `graph LR
+  A([Kullanici]) --> B[Satis Modulu]
+  A --> C[Satin Alma]
+  A --> D[Uretim]
+  A --> E[Muhasebe]
+  B --> F[(Stok DB)]
+  C --> F
+  D --> F
+  E --> G[(Finans DB)]
+  F --> H{Raporlama}
+  G --> H
+  H --> I([Dashboard])`,
+
+  erpSiparis: `graph TD
+  A([Siparis Girisi]) --> B{Stok Yeterli?}
+  B -->|Evet| C[Sevkiyat Hazirligi]
+  B -->|Hayir| D[Satin Alma Talebi]
+  D --> E[Tedarikci Onay]
+  E --> F[Mal Kabul]
+  F --> C
+  C --> G[Irsaliye Olustur]
+  G --> H[Fatura Kes]
+  H --> I[(Muhasebe Kayit)]
+  I --> J([Tamamlandi])`,
+
+  erpUretim: `graph TD
+  A[Urun Agaci BOM] --> B{Malzeme Var?}
+  B -->|Evet| C[Is Emri Olustur]
+  B -->|Hayir| D[Satin Alma Talebi]
+  D --> E[Mal Kabul]
+  E --> C
+  C --> F[Uretim Baslat]
+  F --> G{Kalite Kontrol}
+  G -->|Gecti| H[(Stok Girisi)]
+  G -->|Kalmadi| I[Hurda / Yeniden Islem]
+  I --> F`,
 };

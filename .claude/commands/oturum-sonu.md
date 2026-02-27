@@ -1,0 +1,1 @@
+﻿proje-takipci ajanini cagir. Bu oturumda yapilanlari ozetle. sessions.md ye yaz. Sonraki oturum icin 3 is belirle.

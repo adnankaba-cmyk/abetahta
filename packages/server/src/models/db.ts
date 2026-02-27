@@ -27,7 +27,7 @@ pool.on('connect', () => {
 
 // Yardımcı: Tek sorgu
 export const db = {
-  query: (text: string, params?: any[]) => pool.query(text, params),
+  query: (text: string, params?: unknown[]) => pool.query(text, params),
 
   // Transaction helper
   async transaction<T>(callback: (client: pg.PoolClient) => Promise<T>): Promise<T> {

@@ -1,0 +1,1 @@
+﻿test-muhendisi ajanini cagir. Tum testleri calistir, sonuclari raporla. Basarisiz varsa kok neden bul.

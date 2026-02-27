@@ -1,0 +1,1 @@
+﻿proje-takipci ajanini cagir ve tam durum raporu ver. Ortam kontrolu yap. Changelog ve sessions logunu oku. Faz ilerlemesini goster.

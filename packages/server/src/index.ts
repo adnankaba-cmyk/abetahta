@@ -18,7 +18,7 @@ import { notificationRoutes } from './routes/notifications.js';
 import { commentRoutes } from './routes/comments.js';
 import { settingsRoutes } from './routes/settings.js';
 import { errorHandler } from './middleware/errorHandler.js';
-import { db } from './models/db.js';
+import { pool } from './models/db.js';
 import { logger, httpLogger, socketLogger } from './lib/logger.js';
 import { setIO } from './lib/notify.js';
 import jwt from 'jsonwebtoken';
@@ -165,5 +165,51 @@ const HOST = process.env.API_HOST || '0.0.0.0';
 httpServer.listen(PORT, HOST, () => {
   logger.info({ host: HOST, port: PORT, env: process.env.NODE_ENV || 'development' }, 'abeTahta API Server başlatıldı');
 });
+
+// ---- Graceful Shutdown ----
+let isShuttingDown = false;
+
+async function gracefulShutdown(signal: string): Promise<void> {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  logger.info({ signal }, 'Graceful shutdown baslatiliyor...');
+
+  // 30s icinde kapanmazsa zorla cik
+  const forceTimer = setTimeout(() => {
+    logger.error('Graceful shutdown 30s icinde tamamlanamadi — zorla cikiliyor');
+    process.exit(1);
+  }, 30_000);
+  forceTimer.unref();
+
+  try {
+    // 1. Yeni baglantilari reddet
+    httpServer.close(() => logger.info('HTTP server kapatildi'));
+
+    // 2. Socket.IO baglantilarini kapat
+    io.close(() => logger.info('Socket.IO kapatildi'));
+
+    // 3. DB pool kapat
+    await pool.end();
+    logger.info('PostgreSQL pool kapatildi');
+
+    // 4. Redis kapat (varsa)
+    try {
+      const { redis } = await import('./models/redis.js');
+      await redis.quit();
+      logger.info('Redis baglantisi kapatildi');
+    } catch {
+      // Redis yoksa veya zaten kapali — sorun degil
+    }
+
+    logger.info('Graceful shutdown tamamlandi');
+    process.exit(0);
+  } catch (err) {
+    logger.error({ err }, 'Shutdown sirasinda hata');
+    process.exit(1);
+  }
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 export { app, io };

@@ -1,152 +1,53 @@
-# abeTahta - Proje Hatirlatici
+﻿# abeTahta - CLAUDE.md
 
-## Genel Bilgi
-- **Ne**: AI destekli beyaz tahta uygulamasi (whiteboard + AI + real-time collaboration)
-- **Prensip**: "Kullanici tahtayi gorur, Claude veriyi gorur. Ikisi ayni gercekligi farkli pencerelerden okur/yazar"
-- **Stack**: Next.js 15, React 19, tldraw, Yjs, Express 5, Socket.IO, PostgreSQL 16, Redis 7, Zustand
+## PROJE
+abeTahta - Gercek zamanli gorsel isbirligi platformu.
+Kullanici tahtayi gorur, Claude veriyi gorur - ikisi ayni gercekligi farkli pencerelerden okur ve yazar.
 
-## Monorepo Yapisi
-```
-D:\AbeTahta\
-├── packages/web/          # Next.js frontend (:3000)
-│   ├── app/
-│   │   ├── layout.tsx           # Root layout + AuthProvider
-│   │   ├── page.tsx             # Redirect: token → dashboard, else → login
-│   │   ├── dashboard/page.tsx   # Proje listesi, olusturma, bildirim
-│   │   ├── board/[id]/page.tsx  # Tahta sayfasi (dynamic import TldrawCanvas)
-│   │   └── (auth)/login/page.tsx # Login formu
-│   ├── components/
-│   │   ├── canvas/
-│   │   │   ├── TldrawCanvas.tsx   # 926 satir - Ana canvas + draw.io-stil UI
-│   │   │   ├── TemplatePanel.tsx  # 8 sablon (flowchart, kanban, SWOT, mindmap...)
-│   │   │   ├── ExportPanel.tsx    # PNG/JSON export + clipboard
-│   │   │   └── MiniMap.tsx        # Canvas mini-map + tikla-git navigasyon
-│   │   ├── ai/
-│   │   │   └── AIPanel.tsx        # AI chat paneli + ornek promptlar
-│   │   └── ui/
-│   │       └── NotificationBell.tsx # Bildirim ikonu + badge
-│   ├── hooks/
-│   │   ├── useCollaboration.ts    # Yjs cursor/presence/selection (shape sync YOK!)
-│   │   └── useNotifications.ts    # Socket.IO bildirim dinleyici
-│   ├── lib/
-│   │   ├── api.ts                 # ApiClient (private fields, token, credentials)
-│   │   ├── tahta-dsl.ts           # 712 satir - 15+ komut DSL parser
-│   │   └── socket.ts              # Socket.IO singleton
-│   └── store/
-│       └── auth.ts                # Zustand auth store (login, register, logout)
-│
-├── packages/server/       # Express API (:4000) + WebSocket (:4001)
-│   └── src/
-│       ├── index.ts               # Express + Socket.IO + CORS + helmet + routes
-│       ├── routes/
-│       │   ├── auth.ts            # register, login, refresh, me (Zod validation, bcrypt, JWT)
-│       │   ├── boards.ts          # CRUD + uyelik kontrol + tldraw_data kayit
-│       │   ├── projects.ts        # CRUD + transaction + uye yonetimi + otomatik ilk tahta
-│       │   ├── elements.ts        # CRUD 25+ alan + history tracking + batch create
-│       │   ├── connections.ts     # CRUD + duplicate kontrol + element dogrulama
-│       │   ├── claude.ts          # 7 endpoint (board data, summary, flow, CRUD, analiz, yorum)
-│       │   ├── ai.ts              # Anthropic SDK + tahta baglami + DSL system prompt
-│       │   └── notifications.ts   # CRUD + okunmamis sayisi + toplu okundu
-│       ├── middleware/
-│       │   ├── auth.ts            # JWT + cookie/header token + Claude API key auth
-│       │   └── errorHandler.ts    # AppError + asyncHandler
-│       ├── models/
-│       │   ├── db.ts              # PostgreSQL Pool + transaction helper
-│       │   └── redis.ts           # ioredis + cache helpers + board invalidation (SCAN)
-│       ├── lib/
-│       │   ├── logger.ts          # pino + child loggers (db, redis, ws, http, socket)
-│       │   └── notify.ts          # createNotification + Socket.IO push
-│       └── ws/
-│           └── server.ts          # y-websocket server (:4001)
-│
-├── database-schema.sql    # 10 tablo: users, projects, project_members, boards,
-│                          #   elements (25+ kolon), connections, comments (is_ai, threading),
-│                          #   history (before/after JSONB), templates, notifications
-│                          # 13 index (GIN on elements.content), auto updated_at triggers
-├── docker-compose.yml     # PostgreSQL 16 + Redis 7 (volumes + healthchecks)
-└── package.json           # Monorepo workspaces, concurrently dev
-```
+Stack: Next.js 15, React 19, tldraw, Yjs, Express 5, Socket.IO, PostgreSQL 16, Redis 7, Zustand, Tailwind 4
+Portlar: 3000 (web), 4000 (API), 4001 (WebSocket)
+Monorepo: npm workspaces - packages/web + packages/server
+Admin: adnan.kaba@abeerp.com / admin123
 
-## Mevcut Ozellikler (TAMAMLANAN)
+## DEMIR KURALLAR
 
-### Backend (Neredeyse Tam)
-- [x] Auth: JWT + Cookie + Refresh Token + Zod validation
-- [x] Proje: CRUD + uyelik + rol yonetimi + transaction
-- [x] Tahta: CRUD + tldraw_data JSONB kayit + uyelik kontrol
-- [x] Element: 25+ alan, history tracking, batch create, Redis invalidation
-- [x] Baglanti: CRUD + duplicate kontrol + element dogrulama
-- [x] Claude API: 7 endpoint (board, summary, flow, element CRUD, analiz, yorum)
-- [x] AI Chat: Anthropic SDK, tahta baglami, DSL system prompt
-- [x] Bildirim: DB + Socket.IO gercek zamanli push
-- [x] Cache: Redis get/set/del + board invalidation (SCAN)
-- [x] Log: pino + 5 child logger
-- [x] WebSocket: y-websocket server (:4001)
+### 1. KANITLA
+Yaptim demek yasak. Her degisiklik sonrasi:
+1. Dosyayi oku
+2. npx tsc --noEmit
+3. npm run build
+4. Test calistir
+5. .claude/logs/changelog.md ye yaz
 
-### Frontend (Cogu Tam)
-- [x] Canvas: draw.io-stil menu, toolbar, sol/sag panel (926 satir)
-- [x] DSL: 15+ komut, Turkce+Ingilizce alias, 7 ornek (712 satir)
-- [x] Sablonlar: 8 sablon (flowchart, kanban, SWOT, mindmap, timeline...)
-- [x] Export: PNG (normal/HD) + JSON + clipboard
-- [x] MiniMap: Canvas-based, tikla-git navigasyon
-- [x] AI Chat: Mesajlasma + ornek promptlar + hata yonetimi
-- [x] Bildirim: Bell icon + badge + panel
-- [x] Auth: Login sayfasi + Zustand store
-- [x] Dashboard: Proje listesi + olusturma
+### 2. ONCE OKU
+Hicbir dosyayi degistirmeden ONCE oku. errors.md oku.
 
-## KRITIK EKSIKLER (Yapilacaklar)
+### 3. KARAR SORMA
+DB sema, yeni bagimlilik, mimari degisim icin onay al.
 
-### Faz 1 - Temel (Oncelik: Yuksek)
-- [ ] **Shape Sync YOK** - useCollaboration sadece cursor/presence. Shapes senkronize OLMUYOR
-- [ ] **AI → Canvas kopuk** - AI yanit veriyor ama canvas'a sekil cizemiyor. DSL parser var ama AI ile bagli degil
-- [x] **Register sayfasi** - packages/web/app/(auth)/register/page.tsx MEVCUT
+### 4. LOG TUT
+.claude/logs/ altinda 5 dosya: changelog, sessions, errors, decisions, verifications
 
-### Faz 2 - UX (Oncelik: Orta)
-- [ ] **Yorum UI YOK** - Backend comments CRUD var, frontend panel yok
-- [ ] **Uye yonetimi UI YOK** - Backend endpoint var, frontend yok
-- [ ] **History UI YOK** - Backend history tablosu var, frontend goruntuleme yok
-- [ ] **Kisayollar eksik** - ShortcutsModal var ama cogu kisayol bagli degil
+### 5. AYNI HATAYI TEKRARLAMA
 
-### Faz 3 - Ileri (Oncelik: Dusuk)
-- [ ] AI Agent canvas entegrasyonu (dogrudan sekil cizdirme)
-- [ ] Custom tldraw shapes (KanbanShape, TimelineShape...)
-- [ ] Offline-first + PWA
-- [ ] Import destegi (Mermaid, draw.io XML, Excalidraw JSON)
+## KOD STANDARTLARI
+- Tum kod Ingilizce
+- TypeScript strict, any yasak
+- Server Components varsayilan
+- Parameterized SQL, cursor-based pagination
+- Commit: feat:, fix:, refactor:, docs:
 
-## MUTLAK KURALLAR
+## VERITABANI (16 Tablo)
+users, projects, project_members, boards, elements (JSONB content), connections, comments, history, templates, notifications, settings, sessions, board_snapshots, element_versions, tags, element_tags
 
-### KURAL 1: KANITLANMADAN "BITTI" DEME
-- Dosya degistirdiysen → son halini oku ve degisikligi GOSTER
-- Komut calistirdiysan → ciktiyi goster, hata var mi kontrol et
+## GUVENLIK (FAZ0 — 2026-02-26)
+- requireBoardAccess middleware: comments, ai, claude, websocket route'larinda aktif
+- Rate limiting: global 200/dk, AI chat 20/dk
+- Graceful shutdown: SIGTERM/SIGINT → HTTP, Socket.IO, DB, Redis temiz kapanis
+- WebSocket board auth: y-websocket UUID erisim kontrolu
 
-### KURAL 2: HER DEGISIKLIK TEST EDILMELI
-- Kod degistirdiysen → build kontrol et
-- Build kirildiysa → duzelt
-
-### KURAL 3: BASARISIZLIK KABUL EDILEBILIR — GIZLEMEK EDILEMEZ
-- Calismiyorsa acikca soyle
-- Alternatif oner
-
-## Build/Test Komutlari
-```bash
-npm run dev                          # Tum servisler (web:3000, api:4000, ws:4001)
-cd packages/web && npm run build     # Frontend build
-cd packages/server && npm run build  # Backend build
-npx tsc --noEmit                     # TypeScript tip kontrolu
-```
-
-## Portlar
-| Servis | Port |
-|--------|------|
-| Next.js Web | 3000 |
-| Express API | 4000 |
-| y-websocket | 4001 |
-| PostgreSQL | 5432 |
-| Redis | 6379 |
-
-## Anahtar Teknik Bilgiler
-- tldraw UI tamamen gizli, custom draw.io-stil UI kullaniliyor
-- tldraw_data JSONB olarak boards tablosuna kaydediliyor (auto-save 2s debounce)
-- DSL parser KUTU/DAIRE/OK/NOT/GRAFIK/GRID/TIMELINE/KANBAN komutlarini destekliyor
-- Yjs Y.Doc + awareness bagli ama sadece cursor icin — getShapesMap() tanimli ama KULLANILMIYOR
-- Claude API authenticateClaude middleware ile x-claude-api-key header kullanir
-- Element history: before_state/after_state JSONB olarak kaydediliyor
+## FAZLAR
+Faz 0: Guvenlik yamalari (TAMAMLANDI)
+Faz 1: Docker, Auth, CRUD, Canvas (%90)
+Faz 2: AI/Canvas + UX (%65)
+Faz 3-6: Ileri ozellikler, Polish (%0)
