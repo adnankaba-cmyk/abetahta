@@ -25,6 +25,7 @@ interface AuthState {
   error: string | null;
   singleUserMode: boolean;
   modeChecked: boolean; // checkMode tamamlandı mı?
+  manuallyLoggedOut: boolean; // kullanıcı manuel çıkış yaptı mı?
 
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string, name: string) => Promise<boolean>;
@@ -41,6 +42,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   error: null,
   singleUserMode: false,
   modeChecked: false,
+  manuallyLoggedOut: false,
 
   checkMode: async () => {
     try {
@@ -102,7 +104,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     disconnectSocket();
     localStorage.removeItem('refreshToken');
     api.setToken(null);
-    set({ user: null, accessToken: null });
+    set({ user: null, accessToken: null, manuallyLoggedOut: true });
   },
 
   loadUser: async () => {
