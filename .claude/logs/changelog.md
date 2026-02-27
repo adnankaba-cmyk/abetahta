@@ -1,5 +1,15 @@
 ﻿# abeTahta - Changelog
 ---
+## [2026-02-27] Ajan Sistemi Optimizasyonu (99aae21)
+- FEAT: settings.json — git commit/push/pull/checkout/merge/stash izinleri eklendi
+- FEAT: settings.json — npx vitest/tsx/prettier, curl/psql/redis-cli/pg_isready eklendi
+- SEC:  settings.json — git push --force ve git reset --hard engellendi
+- FIX:  hooks.json — tsc check absolute path ile duzeltildi (root'ta tsconfig yoktu, hic calismiyordu)
+- FEAT: hooks.json — sessionStart hook eklendi (PROJE_DURUMU.md otomatik okunuyor)
+- FIX:  proje-takipci.md — permissionMode:plan kaldirildi, Write/Edit izni eklendi
+- UPDATE: 11 ajan dosyasi guncellendi: description, absolute path, vitest, gercekci icerik
+- FEAT: onarci ailesi 5 uzman ajan tanimlandi ve absolute path ile guncellendi
+
 ## [2026-02-27] database-schema.sql 10 → 16 Tablo (0cd21a4)
 - DOCS: database-schema.sql tamamen yeniden yazildi (v2.0)
 - FEAT: 6 eksik tablo eklendi: settings, board_snapshots, ai_conversations, active_sessions, dsl_scripts, shape_timeline

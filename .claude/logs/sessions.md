@@ -266,3 +266,57 @@ Bu oturum kodlama icermedi, yalnizca test/dogrulama. Proje daha once yapilmis de
 - **Dosya:** `docker-compose.yml`
 - **Etki:** Deploy edilebilirlik garantisi
 
+---
+
+## OTURUM #6 — 2026-02-27
+
+**Sure:** ~1 saat
+**Yapan:** Claude Sonnet 4.6
+**Commitler:** 0cd21a4, 99aae21
+
+### Yapilan Isler
+
+1. **database-schema.sql 10 → 16 tablo guncellendi (commit: 0cd21a4)**
+   - Migrations 001-004 incelendi, eksik 6 tablo tespit edildi
+   - Eklenen tablolar: settings, board_snapshots, ai_conversations, active_sessions, dsl_scripts, shape_timeline
+   - notifications tablosu tamamlandi, IF NOT EXISTS ile idempotent yapildi
+   - docs/database-schema.sql ile senkronize edildi (Docker init)
+
+2. **Ajan sistemi ve ayarlar optimize edildi (commit: 99aae21)**
+   - settings.json: git commit/push/pull/checkout, npx vitest/tsx, curl/psql/redis-cli izinleri eklendi
+   - settings.json: git push --force ve git reset --hard engellendi
+   - hooks.json: tsc check absolute path ile duzeltildi (eskisi root'ta calisiyor, tsconfig yoktu — hicbir sey yapmiyor du)
+   - hooks.json: sessionStart hook eklendi — oturum basinda PROJE_DURUMU.md otomatik yukleniyor
+   - 11 ajan dosyasi guncellendi (description'lar, absolute path'ler, vitest referanslari)
+   - proje-takipci: permissionMode:plan KALDIRILDI, Write/Edit eklendi
+     NOT: Bu oturumda hala plan modunda calisti (oturum basinda eski tanim yuklenmis)
+     Sonraki oturumdan itibaren sessions.md ye kendisi yazabilecek
+
+### Kanit
+- tsc (web + server): temiz
+- Commit 0cd21a4: 2 dosya, 466 satirlık ekleme
+- Commit 99aae21: 17 dosya, 967 satirlik ekleme
+- git push: 0cd21a4..99aae21 master
+
+---
+
+## SONRAKI OTURUM ICIN ONCELIKLER
+
+### 1. ONCELIK — AI Agent Canvas Komutlarini Test Et
+- **Sorun:** `ai-agent.ts` MOVE/RESIZE/DELETE/LABEL komutlari hic canli test edilmemis
+- **Yapilacak:** AI panelden "mavi sekli saga tasi", "sekli buyut" komutlari ver, canvas'ta Playwright ile dogrula
+- **Dosya:** `D:\AbeTahta\packages\web\lib\ai-agent.ts`
+- **Etki:** Kritik kopukluk — kod var ama calisip calismadigi bilinmiyor
+
+### 2. ONCELIK — TldrawCanvas.tsx Refactor
+- **Sorun:** 1236 satirlik monolith bileşen
+- **Yapilacak:** useAICanvas, useExport, useHistory hook'larina ilk bolunme
+- **Dosya:** `D:\AbeTahta\packages\web\components\canvas\TldrawCanvas.tsx`
+- **Etki:** Bakim edilebilirlik, birim test kolayligi
+
+### 3. ONCELIK — Docker Compose End-to-End Testi
+- **Sorun:** docker-compose.yml var ama hic calistirilmadi
+- **Yapilacak:** `docker compose up` → tam stack, login testi, health check
+- **Dosya:** `D:\AbeTahta\docker-compose.yml`
+- **Etki:** Deploy edilebilirlik onaylanir
+
