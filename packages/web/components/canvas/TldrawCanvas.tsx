@@ -1167,7 +1167,7 @@ export default function TldrawCanvas({ boardId, userId = 'anonymous', userName =
         <button onClick={() => editor?.setCurrentTool('select')} style={toolbarBtnStyle} title="Sec">⬚</button>
         <button onClick={() => editor?.setCurrentTool('hand')} style={toolbarBtnStyle} title="Tasi">✋</button>
         <button onClick={() => editor?.setCurrentTool('draw')} style={toolbarBtnStyle} title="Ciz">✏</button>
-        <button onClick={() => editor?.setCurrentTool('eraser')} style={toolbarBtnStyle} title="Sil">🧹</button>
+        <button onClick={() => { if (!editor) return; const count = editor.getCurrentPageShapeIds().size; if (count === 0) return; if (!confirm(`Tahtadaki ${count} şekil silinecek. Emin misiniz?`)) return; editor.deleteShapes([...editor.getCurrentPageShapeIds()]); }} style={toolbarBtnStyle} title="Tahtayi Temizle">🧹</button>
         <button onClick={() => editor?.setCurrentTool('arrow')} style={toolbarBtnStyle} title="Ok">➔</button>
         <button onClick={() => editor?.setCurrentTool('text')} style={toolbarBtnStyle} title="Metin">T</button>
         <button onClick={() => editor?.setCurrentTool('note')} style={toolbarBtnStyle} title="Not">📝</button>
