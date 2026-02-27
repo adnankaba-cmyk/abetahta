@@ -19,11 +19,9 @@ export interface AuthPayload {
   role: string;
 }
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: AuthPayload;
-    }
+declare module 'express-serve-static-core' {
+  interface Request {
+    user?: AuthPayload;
   }
 }
 

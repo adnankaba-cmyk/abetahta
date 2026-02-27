@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { wsLogger } from '../lib/logger.js';
 import { db } from '../models/db.js';
-// @ts-ignore - y-websocket utils
+// @ts-expect-error - y-websocket utils has no type declarations
 import { setupWSConnection } from 'y-websocket/bin/utils';
 
 dotenv.config({ path: '../../.env' });
@@ -44,7 +44,7 @@ wss.on('connection', async (ws, req) => {
     ws.close(4400, 'Bad Request: invalid URL');
     return;
   }
-  let userId: string | null = null;
+  let userId: string;
 
   // ── Auth: Tek kullanici modu degilse JWT dogrula ──
   if (!SINGLE_USER_MODE) {

@@ -538,7 +538,7 @@ export function AIPanel({ editor, boardId, isVisible, onClose, canvasAnchor }: A
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                   <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
-                {msg.shapesAdded} sekil canvas'a eklendi
+                {msg.shapesAdded} sekil canvas&apos;a eklendi
               </div>
             )}
             {msg.actionsExecuted && msg.actionsExecuted > 0 && (
@@ -584,7 +584,7 @@ export function AIPanel({ editor, boardId, isVisible, onClose, canvasAnchor }: A
                   <rect x="3" y="3" width="18" height="18" rx="2" />
                   <path d="M12 8v8m-4-4h8" />
                 </svg>
-                Canvas'a Tekrar Uygula
+                Canvas&apos;a Tekrar Uygula
               </button>
             )}
             <div

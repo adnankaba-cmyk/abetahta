@@ -39,7 +39,8 @@ function fixOverlappingShapes(
     const shape = editor.getShape(shapeId);
     if (!bounds || !shape) continue;
 
-    let { x, y } = shape;
+    const { x } = shape;
+    let { y } = shape;
     const { w, h } = bounds;
 
     // Bu shape önceki placed shape'lerle çakışıyor mu?

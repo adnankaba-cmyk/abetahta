@@ -58,7 +58,7 @@ export default function BoardPage() {
         <div className="text-center">
           <p className="text-red-500 mb-2">{error}</p>
           <a href="/dashboard" className="text-blue-600 text-sm hover:underline">
-            Dashboard'a don
+            Dashboard&apos;a don
           </a>
         </div>
       </div>
