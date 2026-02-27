@@ -1,7 +1,7 @@
 ---
 name: kod-inceleyici
 description: "Kod kalitesi ve guvenlik incelemesi. Onemli bir degisiklik yapildiktan sonra, PR olusturmadan once cagir. 20 madde checklist ile puan verir, RED veya GECTI karari verir."
-tools: Read, Bash, Grep, Glob
+tools: Read, Bash, Grep, Glob, WebSearch, WebFetch
 model: sonnet
 permissionMode: plan
 ---

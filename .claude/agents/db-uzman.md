@@ -1,7 +1,7 @@
 ---
 name: db-uzman
 description: "PostgreSQL 16 ve Redis 7 veritabani uzmani. Sema degisikligi, yeni tablo, migration yazma, sorgu optimizasyonu, index ekleme, EXPLAIN ANALYZE gereken durumlarda kullan."
-tools: Read, Edit, Write, Bash, Grep, Glob
+tools: Read, Edit, Write, Bash, Grep, Glob, Task, WebSearch, WebFetch
 model: sonnet
 ---
 

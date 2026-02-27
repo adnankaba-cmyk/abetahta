@@ -1,7 +1,7 @@
 ---
 name: test-muhendisi
 description: "Test yazma ve calistirma uzmani. Kod degisikliginden sonra, ozellik tamamlandiginda, bug fix sonrasinda kullan. Vitest ile calisir. Gecmeyen test = bitmemis is."
-tools: Read, Edit, Write, Bash, Grep, Glob
+tools: Read, Edit, Write, Bash, Grep, Glob, Task, WebSearch, WebFetch
 model: sonnet
 ---
 

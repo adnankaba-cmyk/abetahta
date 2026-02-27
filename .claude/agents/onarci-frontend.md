@@ -3,7 +3,7 @@ name: onarci-frontend
 description: "Frontend repair sub-agent. Fixes React/Next.js component errors, broken UI, missing imports, prop type mismatches, hydration errors, dead components. Called by onarci master agent."
 model: sonnet
 color: blue
-tools: ["Read", "Edit", "Write", "Bash", "Grep", "Glob"]
+tools: ["Read", "Edit", "Write", "Bash", "Grep", "Glob", "Task", "WebSearch", "WebFetch"]
 ---
 
 # Onarıcı-Frontend — Frontend Onarım Ajanı

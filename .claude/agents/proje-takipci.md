@@ -1,7 +1,7 @@
 ---
 name: proje-takipci
 description: "Proje ilerleme takipcisi. Oturum basi ve sonunda cagir. sessions.md gunceller, faz durumunu izler, ortam kontrolu yapar, tikanikliklari raporlar. 3 sonraki is onerisi uretir."
-tools: Read, Edit, Write, Bash, Grep, Glob
+tools: Read, Edit, Write, Bash, Grep, Glob, Task, WebSearch, WebFetch
 model: sonnet
 ---
 

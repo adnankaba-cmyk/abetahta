@@ -1,7 +1,7 @@
 ---
 name: api-tasarimci
 description: "Express 5 REST API uzmani. Yeni endpoint ekleme, route tasarimi, Zod validation, middleware, hata yonetimi, rate limiting konularinda kullan. packages/server icin."
-tools: Read, Edit, Write, Bash, Grep, Glob
+tools: Read, Edit, Write, Bash, Grep, Glob, Task, WebSearch, WebFetch
 model: sonnet
 ---
 

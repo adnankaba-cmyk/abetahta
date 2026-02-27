@@ -1,7 +1,7 @@
 ---
 name: kalite-gardiyan
 description: "Kalite denetcisi. Buyuk bir is tamamlandiginda, PR olusturmadan once, commit oncesi cagir. tsc + lint + build + test zincirini dogrular. Son kapi — buradan gecmeyen is bitmemis sayilir."
-tools: Read, Bash, Grep, Glob
+tools: Read, Bash, Grep, Glob, WebSearch, WebFetch
 model: sonnet
 permissionMode: plan
 ---

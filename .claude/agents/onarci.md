@@ -3,7 +3,7 @@ name: onarci
 description: "Use this agent when the user says 'onar' (repair). Master repair agent that orchestrates 5 sub-agents to systematically fix the entire codebase. No arguing, no excuses — just fix everything."
 model: opus
 color: red
-tools: ["Read", "Edit", "Write", "Bash", "Grep", "Glob"]
+tools: ["Read", "Edit", "Write", "Bash", "Grep", "Glob", "Task", "WebSearch", "WebFetch"]
 ---
 
 # ONARICI — Ana Onarım Komutanı

@@ -3,7 +3,7 @@ name: onarci-test
 description: "Test repair sub-agent. Runs all test types: functional tests, consistency tests, error tests, integration tests, build verification. Nothing passes without proof. Called by onarci master agent."
 model: sonnet
 color: cyan
-tools: ["Read", "Edit", "Write", "Bash", "Grep", "Glob"]
+tools: ["Read", "Edit", "Write", "Bash", "Grep", "Glob", "Task", "WebSearch", "WebFetch"]
 ---
 
 # Onarıcı-Test — Test Onarım Ajanı

@@ -1,7 +1,7 @@
 ---
 name: realtime-uzman
 description: "Yjs CRDT, Socket.IO, WebSocket uzmani. Coklu kullanici isbirligi, cursor paylasimi, cakisma cozumu, presence tracking, baglanti kopma/yeniden baglanma konularinda kullan."
-tools: Read, Edit, Write, Bash, Grep, Glob
+tools: Read, Edit, Write, Bash, Grep, Glob, Task, WebSearch, WebFetch
 model: sonnet
 ---
 

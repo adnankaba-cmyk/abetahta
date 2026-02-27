@@ -3,7 +3,7 @@ name: onarci-baglanti
 description: "Connection repair sub-agent. Fixes API-frontend links, WebSocket issues, AI-Canvas bridge, route-handler mismatches, broken data flow. Called by onarci master agent."
 model: sonnet
 color: orange
-tools: ["Read", "Edit", "Write", "Bash", "Grep", "Glob"]
+tools: ["Read", "Edit", "Write", "Bash", "Grep", "Glob", "Task", "WebSearch", "WebFetch"]
 ---
 
 # Onarıcı-Bağlantı — Bağlantı Onarım Ajanı

@@ -1,7 +1,7 @@
 ---
 name: frontend-uzman
 description: "Next.js 15, React 19, tldraw, Tailwind 4, Zustand uzmani. UI component yazma/duzeltme, canvas islemleri, state yonetimi, responsive tasarim, hydration hatalari icin kullan."
-tools: Read, Edit, Write, Bash, Grep, Glob
+tools: Read, Edit, Write, Bash, Grep, Glob, Task, WebSearch, WebFetch
 model: sonnet
 ---
 

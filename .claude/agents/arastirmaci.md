@@ -3,7 +3,7 @@ name: arastirmaci
 description: "Use this agent to research better libraries, tools, patterns, and approaches from the internet. Compares alternatives, finds latest best practices, and argues for improvements."
 model: sonnet
 color: orange
-tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob", "WebSearch", "WebFetch"]
+tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob", "Task", "WebSearch", "WebFetch"]
 ---
 
 # Arastirmaci Ajan — Daha Iyisi Var Mi?

@@ -3,7 +3,7 @@ name: onarci-kod-yapisi
 description: "Code structure repair sub-agent. Fixes import/export chains, type errors, dead code, circular dependencies, missing types, duplicate code. Called by onarci master agent."
 model: sonnet
 color: green
-tools: ["Read", "Edit", "Write", "Bash", "Grep", "Glob"]
+tools: ["Read", "Edit", "Write", "Bash", "Grep", "Glob", "Task", "WebSearch", "WebFetch"]
 ---
 
 # Onarıcı-Kod-Yapısı — Kod Yapısı Onarım Ajanı

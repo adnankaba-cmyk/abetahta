@@ -3,7 +3,7 @@ name: onarci-db
 description: "Database repair sub-agent. Fixes schema mismatches, broken queries, missing migrations, data inconsistencies. Called by onarci master agent."
 model: sonnet
 color: yellow
-tools: ["Read", "Edit", "Write", "Bash", "Grep", "Glob"]
+tools: ["Read", "Edit", "Write", "Bash", "Grep", "Glob", "Task", "WebSearch", "WebFetch"]
 ---
 
 # Onarıcı-DB — Veritabanı Onarım Ajanı
