@@ -1,6 +1,35 @@
 # abeTahta - Oturum Loglari
 ---
 
+## OTURUM #8 — 2026-02-27
+
+**Sure:** ~1.5 saat
+**Yapan:** Claude Sonnet 4.6
+**Son Commit:** 7e47580
+
+### Yapilan Isler
+
+1. Server ESLint 3 hata duzeltildi — auth.ts, ws/server.ts (commit: 041403a)
+2. database-schema.sql 10→16 tablo guncellendi (commit: 0cd21a4)
+3. 18 ajan guncellendi: Task+WebSearch+WebFetch, gelistirici+hata-ayiklayici opus (commit: 99aae21)
+4. settings.json: wildcard, thinkingBudget 32000, effortLevel high (commit: afd9c95)
+5. kalite-gardiyan + kod-inceleyici: permissionMode:plan kaldirildi, Write/Edit eklendi
+6. auth.ts: authenticateClaude rol member → admin duzeltildi
+7. Python wrapper scripts ~/bin/ olusturuldu
+8. 142/142 test gecti, 3 test bug duzeltildi (commit: 7e47580)
+
+### Kanit
+- tsc server + web: 0 hata
+- testler: 142/142
+- Son commit: 7e47580 (push edildi)
+
+### Sonraki Oturum Oncelikleri
+1. AI Agent Canvas komutlarini test et (MOVE/RESIZE/DELETE/LABEL — hic canli test edilmedi)
+2. TldrawCanvas.tsx refactor (1236 satir monolith → hook'lara bolme)
+3. Docker Compose end-to-end test (hic calistirilmamis)
+
+---
+
 ## OTURUM #7 — 2026-02-27
 
 **Sure:** ~1 saat
